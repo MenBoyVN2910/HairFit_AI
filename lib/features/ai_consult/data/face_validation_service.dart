@@ -155,7 +155,9 @@ class FaceValidationService {
   }
 
   /// Giải phóng bộ nhớ của ML Kit khi không sử dụng
-  void dispose() {
-    _faceDetector.close();
+  Future<void> dispose() async {
+    try {
+      await _faceDetector.close();
+    } catch (_) {}
   }
 }

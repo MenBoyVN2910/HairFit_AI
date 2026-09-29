@@ -71,7 +71,7 @@ class AIConsultantService {
     );
   }
 
-  void dispose() {
-    _faceValidator.dispose();
+  Future<void> dispose() async {
+    await _faceValidator.dispose();
   }
 }

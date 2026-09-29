@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../features/ai_consult/presentation/ai_consult_screen.dart';
+import '../features/ai_consult/presentation/ai_result_screen.dart';
 import '../features/ai_consult/presentation/ai_spike_test_screen.dart';
+import '../features/ai_consult/presentation/manual_select_screen.dart';
 import '../features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
@@ -155,6 +158,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/customer/appointments',
         name: 'customer_appointments',
         builder: (context, state) => const CustomerAppointmentsScreen(),
+      ),
+      GoRoute(
+        path: '/customer/ai-consult',
+        name: 'customer_ai_consult',
+        builder: (context, state) => const AIConsultScreen(),
+      ),
+      GoRoute(
+        path: '/customer/ai-result',
+        name: 'customer_ai_result',
+        builder: (context, state) => const AIResultScreen(),
+      ),
+      GoRoute(
+        path: '/customer/manual-select',
+        name: 'customer_manual_select',
+        builder: (context, state) => const ManualSelectScreen(),
       ),
       // --- BARBER SHELL ---
       GoRoute(

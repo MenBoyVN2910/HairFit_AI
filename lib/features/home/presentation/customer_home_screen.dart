@@ -87,6 +87,8 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
         onTap: (index) {
           if (index == 1) {
             context.push('/customer/search');
+          } else if (index == 2) {
+            context.push('/customer/appointments');
           } else {
             setState(() {
               _currentNavIndex = index;
@@ -185,11 +187,11 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
           ),
           const SizedBox(height: AppDimensions.lg),
           AppButton(
-            text: 'Thử Ngay Với AI',
-            icon: const Icon(Icons.camera_alt_outlined, size: 18, color: Colors.white),
+            text: 'Tư Vấn Ngay Với AI',
+            icon: const Icon(Icons.face_retouching_natural_rounded, size: 18, color: Colors.white),
             width: 220,
             height: 42,
-            onPressed: () => context.push('/spike-test'),
+            onPressed: () => context.push('/customer/ai-consult'),
           ),
         ],
       ),
@@ -203,11 +205,11 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
         children: [
           Expanded(
             child: _ActionCard(
-              title: 'Spike AI Test',
-              subtitle: 'On-Device AI',
-              icon: Icons.science_outlined,
+              title: 'AI Tư Vấn',
+              subtitle: '100% On-Device',
+              icon: Icons.face_retouching_natural_rounded,
               iconColor: AppColors.accent,
-              onTap: () => context.push('/spike-test'),
+              onTap: () => context.push('/customer/ai-consult'),
             ),
           ),
           const SizedBox(width: AppDimensions.md),
