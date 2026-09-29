@@ -669,16 +669,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                 text: 'Đặt Lịch Hẹn',
                 icon: const Icon(Icons.calendar_today_rounded, size: 18),
                 onPressed: () {
-                  // Điều hướng sang luồng booking (hoặc thông báo sang Tuần 4)
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Đã chọn thợ "${barber.displayName}". Tính năng chọn khung giờ sẽ sẵn sàng trong Tuần 4!',
-                      ),
-                      backgroundColor: AppColors.primary,
-                      duration: const Duration(seconds: 3),
-                    ),
-                  );
+                  context.push('/customer/booking/${barber.uid}');
                 },
               ),
             ),

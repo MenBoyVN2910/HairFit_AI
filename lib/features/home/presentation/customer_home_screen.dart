@@ -48,8 +48,13 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
         ),
         actions: [
           IconButton(
+            tooltip: 'Lịch hẹn của tôi',
+            icon: const Icon(Icons.calendar_month_outlined, color: AppColors.accent),
+            onPressed: () => context.push('/customer/appointments'),
+          ),
+          IconButton(
             tooltip: 'Spike AI & Kiểm thử',
-            icon: const Icon(Icons.science_outlined, color: AppColors.accent),
+            icon: const Icon(Icons.science_outlined, color: AppColors.textSecondary),
             onPressed: () => context.push('/spike-test'),
           ),
           IconButton(

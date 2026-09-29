@@ -17,6 +17,11 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    function isBlocked() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBlocked == true;
+    }
+
     // ===============================================================
     // Users Collection (Task 2.16 & Spec Section 13.1)
     // ===============================================================
@@ -31,7 +36,7 @@ service cloud.firestore {
       // Admin được quyền sửa toàn bộ (khóa user, đổi role)
       // Chủ tài khoản được sửa thông tin cá nhân nhưng không được tự đổi role hay gỡ blocked
       allow update: if isAdmin() || (
-        isOwner(userId) &&
+        isOwner(userId) && !isBlocked() &&
         !request.resource.data.diff(resource.data).affectedKeys()
           .hasAny(['role', 'isBlocked', 'uid', 'email', 'createdAt'])
       );
@@ -53,7 +58,7 @@ service cloud.firestore {
       // Admin được duyệt/từ chối hồ sơ
       // Thợ được cập nhật thông tin tiệm nhưng không được tự duyệt hoặc sửa điểm rating
       allow update: if isAdmin() || (
-        isOwner(barberId) &&
+        isOwner(barberId) && !isBlocked() &&
         !request.resource.data.diff(resource.data).affectedKeys()
           .hasAny(['approvalStatus', 'ratingAvg', 'ratingCount', 'uid', 'createdAt'])
       );
@@ -62,36 +67,45 @@ service cloud.firestore {
     }
 
     // ===============================================================
-    // Appointments Collection (Week 4 MVP)
+    // Appointments Collection (Week 4 MVP - Task 4.15 & Spec Section 13.1)
     // ===============================================================
     match /appointments/{appointmentId} {
       allow read: if isAuthenticated() && (
-        request.auth.uid == resource.data.customerId || 
-        request.auth.uid == resource.data.barberId || 
+        resource.data.customerId == request.auth.uid || 
+        resource.data.barberId == request.auth.uid || 
         isAdmin()
       );
       
-      // Khách hàng tạo lịch hẹn mới
-      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.customerId;
+      // Khách hàng không bị khóa tạo lịch hẹn mới với status ban đầu là 'pending'
+      allow create: if isAuthenticated() 
+        && !isBlocked()
+        && request.resource.data.customerId == request.auth.uid
+        && request.resource.data.status == 'pending';
       
-      // Khách hàng hủy lịch của mình, Thợ xác nhận/từ chối/hoàn thành, hoặc Admin
-      allow update: if isAuthenticated() && (
-        request.auth.uid == resource.data.customerId || 
-        request.auth.uid == resource.data.barberId || 
-        isAdmin()
-      );
-      
+      // Khách hàng chỉ được phép hủy lịch hẹn của mình khi đang ở trạng thái pending hoặc confirmed
+      allow update: if isAuthenticated() && !isBlocked()
+        && request.auth.uid == resource.data.customerId
+        && request.resource.data.status == 'cancelled'
+        && resource.data.status in ['pending', 'confirmed'];
+
+      // Thợ cắt tóc chỉ thao tác lịch liên quan đến tiệm mình (xác nhận, từ chối, hoàn tất)
+      allow update: if isAuthenticated() && !isBlocked()
+        && request.auth.uid == resource.data.barberId
+        && request.resource.data.status in ['confirmed', 'rejected', 'completed'];
+
+      // Admin toàn quyền can thiệp
+      allow update: if isAdmin();
       allow delete: if isAdmin();
     }
 
     // ===============================================================
-    // Booked Slots Collection (Week 4 - Chống trùng lịch)
+    // Booked Slots Collection (Week 4 - Chống trùng lịch Task 4.15)
     // ===============================================================
     match /bookedSlots/{slotId} {
-      allow read: if true;
-      allow create: if isAuthenticated();
-      allow delete: if isAuthenticated();
-      allow update: if false;
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && !isBlocked();
+      allow delete: if isAuthenticated() && !isBlocked();
+      allow update: if false; // Không cho phép cập nhật, chỉ tạo mới hoặc xóa trong Transaction
     }
 
     // ===============================================================

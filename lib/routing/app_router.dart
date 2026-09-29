@@ -11,8 +11,10 @@ import '../features/search_map/presentation/search_map_screen.dart';
 import '../features/search_map/presentation/barber_detail_screen.dart';
 import '../features/admin/presentation/approve_barbers_screen.dart';
 import '../features/appointments/presentation/barber_appointments_screen.dart';
+import '../features/appointments/presentation/customer_appointments_screen.dart';
 import '../features/barber_profile/presentation/barber_pending_screen.dart';
 import '../features/barber_profile/presentation/barber_registration_screen.dart';
+import '../features/booking/presentation/booking_screen.dart';
 import '../providers/auth_provider.dart';
 
 class RouterNotifier extends ChangeNotifier {
@@ -134,6 +136,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final barberId = state.pathParameters['barberId'] ?? '';
           return BarberDetailScreen(barberId: barberId);
         },
+      ),
+      GoRoute(
+        path: '/customer/booking/:barberId',
+        name: 'customer_booking',
+        builder: (context, state) {
+          final barberId = state.pathParameters['barberId'] ?? '';
+          final serviceId = state.uri.queryParameters['serviceId'];
+          final hairstyleId = state.uri.queryParameters['hairstyleId'];
+          return BookingScreen(
+            barberId: barberId,
+            preselectedServiceId: serviceId,
+            hairstyleId: hairstyleId,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/customer/appointments',
+        name: 'customer_appointments',
+        builder: (context, state) => const CustomerAppointmentsScreen(),
       ),
       // --- BARBER SHELL ---
       GoRoute(
