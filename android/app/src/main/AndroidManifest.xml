@@ -7,7 +7,8 @@
     <application
         android:label="HairFit AI"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round">
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
             android:value="face" />

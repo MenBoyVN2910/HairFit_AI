@@ -7,6 +7,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../../providers/auth_provider.dart';
 
 /// Màn hình đăng nhập tài khoản HairFit AI (UC-01)
 class LoginScreen extends ConsumerStatefulWidget {
@@ -39,10 +40,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
-      // Logic xác thực sẽ được hoàn thiện trong Tuần 2
-      await Future.delayed(const Duration(milliseconds: 600));
+      await ref.read(authStateProvider.notifier).login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
       if (!mounted) return;
-      context.go('/customer/home');
+      // context.go('/customer/home'); // GoRouter sẽ tự động redirect khi đăng nhập thành công
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
@@ -63,13 +66,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          TextButton.icon(
-            onPressed: () => context.push('/spike-test'),
-            icon: const Icon(Icons.science_outlined, size: 18),
-            label: const Text('Spike AI Test'),
-          ),
-        ],
       ),
       body: SafeArea(
         child: Center(

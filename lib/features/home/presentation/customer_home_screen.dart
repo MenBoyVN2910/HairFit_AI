@@ -9,6 +9,8 @@ import '../../../core/utils/date_formatter.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/rating_stars.dart';
 import '../../../core/widgets/status_badge.dart';
+import '../../../providers/auth_provider.dart';
+import '../../search_map/data/barber_repository.dart';
 
 /// Màn hình chính dành cho khách hàng (Customer Home)
 class CustomerHomeScreen extends ConsumerStatefulWidget {
@@ -53,7 +55,10 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
           IconButton(
             tooltip: 'Đăng xuất',
             icon: const Icon(Icons.logout_outlined),
-            onPressed: () => context.go('/login'),
+            onPressed: () async {
+              await ref.read(authStateProvider.notifier).logout();
+              if (context.mounted) context.go('/login');
+            },
           ),
         ],
       ),
@@ -75,9 +80,13 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentNavIndex,
         onTap: (index) {
-          setState(() {
-            _currentNavIndex = index;
-          });
+          if (index == 1) {
+            context.push('/customer/search');
+          } else {
+            setState(() {
+              _currentNavIndex = index;
+            });
+          }
         },
         items: const [
           BottomNavigationBarItem(
@@ -200,14 +209,10 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
           Expanded(
             child: _ActionCard(
               title: 'Tìm Thợ Quanh Đây',
-              subtitle: 'Đà Nẵng (5 thợ)',
+              subtitle: 'Đà Nẵng & GPS',
               icon: Icons.place_outlined,
               iconColor: AppColors.tertiary,
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Module Bản Đồ sẽ triển khai trong Tuần 3')),
-                );
-              },
+              onTap: () => context.push('/customer/search'),
             ),
           ),
         ],
@@ -244,54 +249,58 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             separatorBuilder: (context, index) => const SizedBox(width: AppDimensions.md),
             itemBuilder: (context, index) {
               final item = hairstyles[index];
-              return Container(
-                width: 140,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: AppDimensions.borderRadiusMd,
-                  border: Border.all(color: AppColors.divider),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(AppDimensions.radiusMd),
-                      ),
-                      child: Image.network(
-                        item.imageUrl,
-                        height: 100,
-                        width: 140,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
+              return InkWell(
+                borderRadius: AppDimensions.borderRadiusMd,
+                onTap: () => context.push('/customer/search?hairstyleId=${item.id}'),
+                child: Container(
+                  width: 140,
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: AppDimensions.borderRadiusMd,
+                    border: Border.all(color: AppColors.divider),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(AppDimensions.radiusMd),
+                        ),
+                        child: Image.network(
+                          item.imageUrl,
                           height: 100,
-                          color: AppColors.inputBackground,
-                          child: const Icon(Icons.image_not_supported_outlined, color: AppColors.textSecondary),
+                          width: 140,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            height: 100,
+                            color: AppColors.inputBackground,
+                            child: const Icon(Icons.image_not_supported_outlined, color: AppColors.textSecondary),
+                          ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(AppDimensions.sm),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.name,
-                            style: AppTextStyles.labelMedium,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            item.tags.take(2).join(', '),
-                            style: AppTextStyles.caption,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                      Padding(
+                        padding: const EdgeInsets.all(AppDimensions.sm),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.name,
+                              style: AppTextStyles.labelMedium,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              item.tags.take(2).join(', '),
+                              style: AppTextStyles.caption,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },
@@ -302,7 +311,10 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   }
 
   Widget _buildFeaturedBarbersSection() {
-    final barbers = SeedDataService.sampleBarbers;
+    final barbersAsync = ref.watch(approvedBarbersProvider);
+    final barbers = (barbersAsync.value != null && barbersAsync.value!.isNotEmpty)
+        ? barbersAsync.value!
+        : SeedDataService.sampleBarbers;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.lg),
@@ -313,9 +325,12 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Thợ Cắt Tóc Nổi Bật', style: AppTextStyles.h3),
-              Text(
-                'Xem tất cả',
-                style: AppTextStyles.caption.copyWith(color: AppColors.accent, fontWeight: FontWeight.bold),
+              InkWell(
+                onTap: () => context.push('/customer/search'),
+                child: Text(
+                  'Xem tất cả',
+                  style: AppTextStyles.caption.copyWith(color: AppColors.accent, fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),
@@ -327,13 +342,16 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             separatorBuilder: (context, index) => const SizedBox(height: AppDimensions.md),
             itemBuilder: (context, index) {
               final barber = barbers[index];
-              return Container(
-                padding: const EdgeInsets.all(AppDimensions.md),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: AppDimensions.borderRadiusMd,
-                  border: Border.all(color: AppColors.divider),
-                ),
+              return InkWell(
+                borderRadius: AppDimensions.borderRadiusMd,
+                onTap: () => context.push('/customer/barber/${barber.uid}'),
+                child: Container(
+                  padding: const EdgeInsets.all(AppDimensions.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: AppDimensions.borderRadiusMd,
+                    border: Border.all(color: AppColors.divider),
+                  ),
                 child: Row(
                   children: [
                     ClipRRect(
@@ -393,8 +411,9 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                     ),
                   ],
                 ),
-              );
-            },
+              ),
+            );
+          },
           ),
         ],
       ),

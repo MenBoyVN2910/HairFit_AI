@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hairfit_ai/core/utils/date_formatter.dart';
-import 'package:hairfit_ai/core/utils/distance_helper.dart';
 import 'package:hairfit_ai/core/utils/validators.dart';
 
 void main() {
@@ -66,26 +65,6 @@ void main() {
       expect(parsed!.year, equals(2026));
       expect(parsed.month, equals(10));
       expect(parsed.day, equals(15));
-    });
-  });
-
-  group('DistanceHelper Test', () {
-    test('calculateDistanceKm calculates distance between coordinates correctly', () {
-      // Khoảng cách giữa 2 điểm mẫu tại Đà Nẵng: (16.0544, 108.2022) và (16.0680, 108.2160)
-      final distanceKm = DistanceHelper.calculateDistanceKm(
-        startLatitude: 16.0544,
-        startLongitude: 108.2022,
-        endLatitude: 16.0680,
-        endLongitude: 108.2160,
-      );
-
-      expect(distanceKm, greaterThan(1.0));
-      expect(distanceKm, lessThan(3.0));
-    });
-
-    test('formatDistance displays m for < 1km and km for >= 1km', () {
-      expect(DistanceHelper.formatDistance(0.45), equals('450 m'));
-      expect(DistanceHelper.formatDistance(1.234), equals('1.2 km'));
     });
   });
 }

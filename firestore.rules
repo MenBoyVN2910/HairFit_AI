@@ -1,0 +1,105 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ===============================================================
+    // Users Collection (Task 2.16 & Spec Section 13.1)
+    // ===============================================================
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Cho phép đăng ký role customer hoặc barber, mặc định chưa bị khóa
+      allow create: if isAuthenticated() && request.auth.uid == userId
+        && request.resource.data.role in ['customer', 'barber']
+        && request.resource.data.isBlocked == false;
+      
+      // Admin được quyền sửa toàn bộ (khóa user, đổi role)
+      // Chủ tài khoản được sửa thông tin cá nhân nhưng không được tự đổi role hay gỡ blocked
+      allow update: if isAdmin() || (
+        isOwner(userId) &&
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['role', 'isBlocked', 'uid', 'email', 'createdAt'])
+      );
+      
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // Barber Profiles Collection (Task 2.16 & Spec Section 13.1)
+    // ===============================================================
+    match /barberProfiles/{barberId} {
+      // Khách hàng chỉ xem được thợ đã được duyệt (approved). Thợ & Admin xem được cả pending
+      allow read: if isAdmin() || isOwner(barberId) || resource.data.approvalStatus == 'approved';
+      
+      // Thợ tạo hồ sơ ban đầu luôn ở trạng thái pending
+      allow create: if isOwner(barberId) 
+        && request.resource.data.approvalStatus == 'pending';
+      
+      // Admin được duyệt/từ chối hồ sơ
+      // Thợ được cập nhật thông tin tiệm nhưng không được tự duyệt hoặc sửa điểm rating
+      allow update: if isAdmin() || (
+        isOwner(barberId) &&
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['approvalStatus', 'ratingAvg', 'ratingCount', 'uid', 'createdAt'])
+      );
+      
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // Appointments Collection (Week 4 MVP)
+    // ===============================================================
+    match /appointments/{appointmentId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.customerId || 
+        request.auth.uid == resource.data.barberId || 
+        isAdmin()
+      );
+      
+      // Khách hàng tạo lịch hẹn mới
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.customerId;
+      
+      // Khách hàng hủy lịch của mình, Thợ xác nhận/từ chối/hoàn thành, hoặc Admin
+      allow update: if isAuthenticated() && (
+        request.auth.uid == resource.data.customerId || 
+        request.auth.uid == resource.data.barberId || 
+        isAdmin()
+      );
+      
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // Booked Slots Collection (Week 4 - Chống trùng lịch)
+    // ===============================================================
+    match /bookedSlots/{slotId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow delete: if isAuthenticated();
+      allow update: if false;
+    }
+
+    // ===============================================================
+    // Hairstyle Catalog Collection (Danh mục kiểu tóc chuẩn)
+    // ===============================================================
+    match /hairstyleCatalog/{styleId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

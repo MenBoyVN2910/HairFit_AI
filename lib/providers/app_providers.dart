@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../core/services/connectivity_service.dart';
 import '../models/user_model.dart';
 
 /// Provider cung cấp FirebaseAuth instance
@@ -32,13 +31,3 @@ final currentUserModelProvider = FutureProvider<UserModel?>((ref) async {
   return UserModel.fromFirestore(doc);
 });
 
-/// Provider theo dõi trạng thái kết nối Internet
-final connectivityServiceProvider = Provider<ConnectivityService>((ref) {
-  return ConnectivityService();
-});
-
-/// StreamProvider thông báo khi kết nối mạng thay đổi
-final isConnectedProvider = StreamProvider<bool>((ref) {
-  final service = ref.watch(connectivityServiceProvider);
-  return service.onConnectivityChanged;
-});

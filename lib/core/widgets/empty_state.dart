@@ -4,64 +4,68 @@ import '../constants/app_dimensions.dart';
 import '../constants/app_text_styles.dart';
 import 'app_button.dart';
 
-/// Widget hiển thị trạng thái trống (không có dữ liệu, không có lịch hẹn, ...)
+/// Widget hiển thị trạng thái danh sách hoặc dữ liệu trống (Empty State)
 class EmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
   final String message;
   final String? actionText;
-  final VoidCallback? onActionPressed;
-  final double iconSize;
+  final VoidCallback? onAction;
+  final Widget? customIllustration;
 
   const EmptyState({
     super.key,
-    required this.icon,
+    this.icon = Icons.inbox_outlined,
     required this.title,
     required this.message,
     this.actionText,
-    this.onActionPressed,
-    this.iconSize = 64.0,
+    this.onAction,
+    this.customIllustration,
   });
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppDimensions.xxl),
+        padding: const EdgeInsets.all(AppDimensions.xxl),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(AppDimensions.lg),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.05),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                size: iconSize,
-                color: AppColors.textSecondary,
-              ),
-            ),
+            customIllustration ??
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.06),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    size: AppDimensions.iconXl,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
             const SizedBox(height: AppDimensions.lg),
             Text(
               title,
               style: AppTextStyles.h3,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppDimensions.sm),
+            const SizedBox(height: AppDimensions.xs),
             Text(
               message,
-              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+              ),
               textAlign: TextAlign.center,
             ),
-            if (actionText != null && onActionPressed != null) ...[
+            if (actionText != null && onAction != null) ...[
               const SizedBox(height: AppDimensions.xl),
               AppButton(
                 text: actionText!,
-                onPressed: onActionPressed,
-                width: 200,
+                onPressed: onAction,
+                variant: AppButtonVariant.primary,
               ),
             ],
           ],

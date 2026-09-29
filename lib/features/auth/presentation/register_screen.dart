@@ -8,6 +8,7 @@ import '../../../core/utils/validators.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../models/user_model.dart';
+import '../../../providers/auth_provider.dart';
 
 /// Màn hình đăng ký tài khoản (UC-01)
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -46,10 +47,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     });
 
     try {
-      // Logic đăng ký sẽ được tích hợp hoàn chỉnh với Firebase Auth trong Tuần 2
-      await Future.delayed(const Duration(milliseconds: 600));
+      await ref.read(authStateProvider.notifier).register(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        displayName: _nameController.text.trim(),
+        role: _selectedRole,
+      );
       if (!mounted) return;
-      context.go('/customer/home');
+      // context.go('/customer/home'); // GoRouter sẽ tự động redirect
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();

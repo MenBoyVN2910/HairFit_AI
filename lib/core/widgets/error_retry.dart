@@ -4,20 +4,20 @@ import '../constants/app_dimensions.dart';
 import '../constants/app_text_styles.dart';
 import 'app_button.dart';
 
-/// Widget hiển thị lỗi kèm nút "Thử lại" thân thiện
+/// Widget hiển thị thông báo lỗi kèm nút "Thử lại" (Error & Retry)
 class ErrorRetry extends StatelessWidget {
-  final String message;
-  final String? hint;
+  final String? title;
+  final String errorMessage;
   final VoidCallback onRetry;
-  final String retryText;
+  final String retryButtonText;
   final IconData icon;
 
   const ErrorRetry({
     super.key,
-    required this.message,
+    this.title,
+    required this.errorMessage,
     required this.onRetry,
-    this.hint,
-    this.retryText = 'Thử lại',
+    this.retryButtonText = 'Thử lại',
     this.icon = Icons.error_outline_rounded,
   });
 
@@ -25,43 +25,44 @@ class ErrorRetry extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppDimensions.xl),
+        padding: const EdgeInsets.all(AppDimensions.xxl),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(AppDimensions.lg),
+              width: 72,
+              height: 72,
               decoration: const BoxDecoration(
                 color: AppColors.errorLight,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                size: 52.0,
+                size: AppDimensions.iconLg,
                 color: AppColors.error,
               ),
             ),
             const SizedBox(height: AppDimensions.lg),
             Text(
-              message,
-              style: AppTextStyles.h4,
+              title ?? 'Đã xảy ra sự cố',
+              style: AppTextStyles.h3.copyWith(color: AppColors.textPrimary),
               textAlign: TextAlign.center,
             ),
-            if (hint != null) ...[
-              const SizedBox(height: AppDimensions.xs),
-              Text(
-                hint!,
-                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
-                textAlign: TextAlign.center,
+            const SizedBox(height: AppDimensions.xs),
+            Text(
+              errorMessage,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
               ),
-            ],
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: AppDimensions.xl),
             AppButton(
-              text: retryText,
+              text: retryButtonText,
+              icon: const Icon(Icons.refresh_rounded, color: Colors.white, size: 18),
               onPressed: onRetry,
-              width: 180,
-              icon: const Icon(Icons.refresh_rounded, size: 20, color: Colors.white),
+              variant: AppButtonVariant.primary,
             ),
           ],
         ),

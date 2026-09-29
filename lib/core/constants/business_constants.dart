@@ -29,4 +29,9 @@ class BusinessConstants {
 
   /// Tối đa số gợi ý kiểu tóc trả về từ AI Recommendation Engine
   static const int maxHairstyleSuggestions = 3;
+
+  /// Toạ độ mặc định trung tâm TP. Đà Nẵng (dành cho fallback bản đồ khi từ chối GPS)
+  static const double defaultLatitude = 16.0544;
+  static const double defaultLongitude = 108.2022;
+  static const String defaultCityName = 'Đà Nẵng';
 }
