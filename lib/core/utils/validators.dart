@@ -1,3 +1,10 @@
+// ============================================================================
+// File: lib/core/utils/validators.dart
+// Mục đích: Cung cấp các hàm tiện ích (Utility/Helper) dùng chung.
+// Kết cấu:
+//  - Các hàm logic nhỏ, tính toán, format dữ liệu độc lập với UI.
+// ============================================================================
+
 /// Các hàm kiểm tra tính hợp lệ dữ liệu (Form Validation)
 class Validators {
   Validators._();
@@ -5,8 +12,8 @@ class Validators {
   /// Kiểm tra trường bắt buộc
   static String? required(String? value, [String? fieldName]) {
     if (value == null || value.trim().isEmpty) {
-      return fieldName != null 
-          ? 'Vui lòng nhập $fieldName' 
+      return fieldName != null
+          ? 'Vui lòng nhập $fieldName'
           : 'Vui lòng không để trống';
     }
     return null;

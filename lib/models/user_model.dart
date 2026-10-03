@@ -1,3 +1,10 @@
+// ============================================================================
+// File: lib/models/user_model.dart
+// Mục đích: Định nghĩa cấu trúc dữ liệu (user_model).
+// Kết cấu:
+//  - Lớp mô hình (Model) bao gồm các thuộc tính và phương thức chuyển đổi (toMap, fromMap, copyWith).
+// ============================================================================
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum UserRole {
@@ -83,8 +90,12 @@ class UserModel {
       'avatarUrl': avatarUrl,
       'role': role.toRoleString(),
       'isBlocked': isBlocked,
-      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
-      'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : FieldValue.serverTimestamp(),
+      'createdAt': createdAt != null
+          ? Timestamp.fromDate(createdAt!)
+          : FieldValue.serverTimestamp(),
+      'updatedAt': updatedAt != null
+          ? Timestamp.fromDate(updatedAt!)
+          : FieldValue.serverTimestamp(),
     };
   }
 

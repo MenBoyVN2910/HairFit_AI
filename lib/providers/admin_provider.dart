@@ -1,17 +1,27 @@
+// ============================================================================
+// File: lib/providers/admin_provider.dart
+// Mục đích: Quản lý trạng thái (State Management) cho admin.
+// Kết cấu:
+//  - Sử dụng Riverpod (Notifier/StateNotifier/Provider) để cung cấp trạng thái và xử lý logic nghiệp vụ.
+// ============================================================================
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../features/barber_profile/data/barber_profile_repository.dart';
 import '../models/barber_profile_model.dart';
 
-final pendingBarbersProvider = FutureProvider.autoDispose<List<BarberProfileModel>>((ref) async {
-  final repo = ref.watch(barberProfileRepositoryProvider);
-  return repo.getPendingBarbers();
-});
+final pendingBarbersProvider =
+    FutureProvider.autoDispose<List<BarberProfileModel>>((ref) async {
+      final repo = ref.watch(barberProfileRepositoryProvider);
+      return repo.getPendingBarbers();
+    });
 
 class AdminController extends StateNotifier<AsyncValue<void>> {
   final BarberProfileRepository _repository;
   final Ref _ref;
 
-  AdminController(this._repository, this._ref) : super(const AsyncValue.data(null));
+  AdminController(this._repository, this._ref)
+    : super(const AsyncValue.data(null));
 
   Future<void> approveBarber(String uid) async {
     state = const AsyncValue.loading();
@@ -36,6 +46,7 @@ class AdminController extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final adminControllerProvider = StateNotifierProvider<AdminController, AsyncValue<void>>((ref) {
-  return AdminController(ref.watch(barberProfileRepositoryProvider), ref);
-});
+final adminControllerProvider =
+    StateNotifierProvider<AdminController, AsyncValue<void>>((ref) {
+      return AdminController(ref.watch(barberProfileRepositoryProvider), ref);
+    });

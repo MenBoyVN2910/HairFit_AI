@@ -1,5 +1,13 @@
+// ============================================================================
+// File: lib/features/search_map/presentation/widgets/barber_list_view.dart
+// Mục đích: Thành phần giao diện (Widget) con thuộc tính năng search_map.
+// Kết cấu:
+//  - Widget nhận dữ liệu và hiển thị UI, đóng gói giao diện cho gọn gàng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_text_styles.dart';
@@ -90,7 +98,11 @@ class BarberListView extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline, size: 18, color: AppColors.warning),
+                  const Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: AppColors.warning,
+                  ),
                   const SizedBox(width: AppDimensions.sm),
                   const Expanded(
                     child: Text(
@@ -119,7 +131,10 @@ class BarberListView extends StatelessWidget {
               ),
               if (searchState.matchingCount > 0)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.accent.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),

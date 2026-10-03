@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/features/ai_consult/presentation/widgets/hair_info_selector.dart
+// Mục đích: Thành phần giao diện (Widget) con thuộc tính năng ai_consult.
+// Kết cấu:
+//  - Widget nhận dữ liệu và hiển thị UI, đóng gói giao diện cho gọn gàng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_text_styles.dart';
@@ -54,7 +62,9 @@ class HairInfoSelector extends StatelessWidget {
           const SizedBox(height: AppDimensions.sm),
           Text(
             'Chọn thêm thông tin để thuật toán AI tinh chỉnh gợi ý phù hợp nhất với phong cách của bạn.',
-            style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
           const Divider(height: AppDimensions.lg),
 
@@ -67,19 +77,22 @@ class HairInfoSelector extends StatelessWidget {
                 label: 'Nam',
                 icon: Icons.male_rounded,
                 isSelected: selectedGender == 'male',
-                onSelected: (selected) => onGenderChanged(selected ? 'male' : null),
+                onSelected: (selected) =>
+                    onGenderChanged(selected ? 'male' : null),
               ),
               _buildChoiceChip(
                 label: 'Nữ',
                 icon: Icons.female_rounded,
                 isSelected: selectedGender == 'female',
-                onSelected: (selected) => onGenderChanged(selected ? 'female' : null),
+                onSelected: (selected) =>
+                    onGenderChanged(selected ? 'female' : null),
               ),
               _buildChoiceChip(
                 label: 'Tất cả (Unisex)',
                 icon: Icons.all_inclusive_rounded,
-                isSelected: selectedGender == null || selectedGender == 'unisex',
-                onSelected: (_) => onGenderChanged(null),
+                isSelected:
+                    selectedGender == null || selectedGender == 'unisex',
+                onSelected: (_) => onGenderChanged('unisex'),
               ),
             ],
           ),
@@ -93,17 +106,20 @@ class HairInfoSelector extends StatelessWidget {
               _buildChoiceChip(
                 label: 'Tóc ngắn',
                 isSelected: selectedLength == 'short',
-                onSelected: (selected) => onLengthChanged(selected ? 'short' : null),
+                onSelected: (selected) =>
+                    onLengthChanged(selected ? 'short' : null),
               ),
               _buildChoiceChip(
                 label: 'Trung bình',
                 isSelected: selectedLength == 'medium',
-                onSelected: (selected) => onLengthChanged(selected ? 'medium' : null),
+                onSelected: (selected) =>
+                    onLengthChanged(selected ? 'medium' : null),
               ),
               _buildChoiceChip(
                 label: 'Tóc dài',
                 isSelected: selectedLength == 'long',
-                onSelected: (selected) => onLengthChanged(selected ? 'long' : null),
+                onSelected: (selected) =>
+                    onLengthChanged(selected ? 'long' : null),
               ),
             ],
           ),
@@ -117,17 +133,20 @@ class HairInfoSelector extends StatelessWidget {
               _buildChoiceChip(
                 label: 'Tóc thẳng',
                 isSelected: selectedTexture == 'straight',
-                onSelected: (selected) => onTextureChanged(selected ? 'straight' : null),
+                onSelected: (selected) =>
+                    onTextureChanged(selected ? 'straight' : null),
               ),
               _buildChoiceChip(
                 label: 'Gợn sóng',
                 isSelected: selectedTexture == 'wavy',
-                onSelected: (selected) => onTextureChanged(selected ? 'wavy' : null),
+                onSelected: (selected) =>
+                    onTextureChanged(selected ? 'wavy' : null),
               ),
               _buildChoiceChip(
                 label: 'Tóc xoăn',
                 isSelected: selectedTexture == 'curly',
-                onSelected: (selected) => onTextureChanged(selected ? 'curly' : null),
+                onSelected: (selected) =>
+                    onTextureChanged(selected ? 'curly' : null),
               ),
             ],
           ),

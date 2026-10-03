@@ -1,6 +1,14 @@
+// ============================================================================
+// File: lib/routing/app_router.dart
+// Mục đích: Cấu hình điều hướng (Routing) của ứng dụng.
+// Kết cấu:
+//  - Sử dụng GoRouter để định nghĩa các đường dẫn (routes) và logic bảo vệ (guards).
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../features/ai_consult/presentation/ai_consult_screen.dart';
 import '../features/ai_consult/presentation/ai_result_screen.dart';
 import '../features/ai_consult/presentation/ai_spike_test_screen.dart';
@@ -17,7 +25,12 @@ import '../features/appointments/presentation/barber_appointments_screen.dart';
 import '../features/appointments/presentation/customer_appointments_screen.dart';
 import '../features/barber_profile/presentation/barber_pending_screen.dart';
 import '../features/barber_profile/presentation/barber_registration_screen.dart';
+import '../features/barber_profile/presentation/barber_edit_screen.dart';
 import '../features/booking/presentation/booking_screen.dart';
+import '../features/profile/presentation/profile_screen.dart';
+import '../features/profile/presentation/edit_profile_screen.dart';
+import '../features/chat/presentation/chat_screen.dart';
+import '../features/chat/presentation/chat_list_screen.dart';
 import '../providers/auth_provider.dart';
 
 class RouterNotifier extends ChangeNotifier {
@@ -52,11 +65,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isAuth = user != null;
       final loc = state.uri.toString();
 
-      final isPublicRoute = loc == '/splash' ||
-                            loc == '/login' || 
-                            loc == '/register' || 
-                            loc == '/forgot-password' ||
-                            loc == '/spike-test';
+      final isPublicRoute =
+          loc == '/splash' ||
+          loc == '/login' ||
+          loc == '/register' ||
+          loc == '/forgot-password' ||
+          loc == '/spike-test';
 
       // 1. Chưa đăng nhập mà truy cập route riêng tư -> về /login
       if (!isAuth && !isPublicRoute) {
@@ -68,16 +82,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
 
-      final isAuthFormRoute = loc == '/login' || 
-                             loc == '/register' || 
-                             loc == '/forgot-password';
+      final isAuthFormRoute =
+          loc == '/login' || loc == '/register' || loc == '/forgot-password';
 
       // 3. Đã đăng nhập mà còn ở trang login/register thì điều hướng về role shell
       if (isAuth && isAuthFormRoute) {
         if (user.isAdmin) {
           return '/admin/approve-barbers';
         } else if (user.isBarber) {
-          return '/barber/pending'; 
+          return '/barber/pending';
         } else {
           return '/customer/home';
         }
@@ -92,6 +105,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return user.isAdmin ? '/admin/approve-barbers' : '/customer/home';
         }
         if (loc.startsWith('/customer') && !user.isCustomer) {
+          // Cho phép thợ và admin xem trang hồ sơ tiệm công khai (/customer/barber/:barberId)
+          if (loc.startsWith('/customer/barber/')) {
+            return null;
+          }
           return user.isAdmin ? '/admin/approve-barbers' : '/barber/pending';
         }
       }
@@ -174,6 +191,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'customer_manual_select',
         builder: (context, state) => const ManualSelectScreen(),
       ),
+      GoRoute(
+        path: '/customer/profile',
+        name: 'customer_profile',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/customer/profile-edit',
+        name: 'customer_profile_edit',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
       // --- BARBER SHELL ---
       GoRoute(
         path: '/barber/appointments',
@@ -190,11 +217,56 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'barber_profile_setup',
         builder: (context, state) => const BarberRegistrationScreen(),
       ),
+      GoRoute(
+        path: '/barber/profile-edit',
+        name: 'barber_profile_edit',
+        builder: (context, state) => const BarberEditScreen(),
+      ),
+      GoRoute(
+        path: '/barber/profile',
+        name: 'barber_profile',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/barber/profile-edit-user',
+        name: 'barber_profile_edit_user',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
       // --- ADMIN SHELL ---
       GoRoute(
         path: '/admin/approve-barbers',
         name: 'admin_approve_barbers',
         builder: (context, state) => const ApproveBarbersScreen(),
+      ),
+      // --- CHAT 1:1 ---
+      GoRoute(
+        path: '/conversations',
+        name: 'conversations',
+        builder: (context, state) => const ChatListScreen(),
+      ),
+      GoRoute(
+        path: '/chat/:chatId',
+        name: 'chat',
+        builder: (context, state) {
+          final chatId = state.pathParameters['chatId'] ?? '';
+          final otherUserId = state.uri.queryParameters['otherUserId'] ?? '';
+          final otherUserName =
+              state.uri.queryParameters['otherUserName'] ?? 'Người dùng';
+          final customerId = state.uri.queryParameters['customerId'] ?? '';
+          final customerName = state.uri.queryParameters['customerName'] ?? '';
+          final barberId = state.uri.queryParameters['barberId'] ?? '';
+          final barberName = state.uri.queryParameters['barberName'] ?? '';
+
+          return ChatScreen(
+            chatId: chatId,
+            otherUserId: otherUserId,
+            otherUserName: otherUserName,
+            customerId: customerId,
+            customerName: customerName,
+            barberId: barberId,
+            barberName: barberName,
+          );
+        },
       ),
       // --- TEST ---
       GoRoute(
@@ -204,9 +276,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
-      body: Center(
-        child: Text('Không tìm thấy đường dẫn: ${state.uri}'),
-      ),
+      body: Center(child: Text('Không tìm thấy đường dẫn: ${state.uri}')),
     ),
   );
 });

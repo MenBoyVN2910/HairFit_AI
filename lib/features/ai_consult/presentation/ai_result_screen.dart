@@ -1,19 +1,37 @@
+// ============================================================================
+// File: lib/features/ai_consult/presentation/ai_result_screen.dart
+// Mục đích: Màn hình giao diện (Screen) chính của tính năng ai_consult.
+// Kết cấu:
+//  - Sử dụng ConsumerWidget/StatefulWidget, kết nối UI với Provider để hiển thị trạng thái và xử lý sự kiện người dùng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../providers/ai_consult_provider.dart';
+import '../domain/face_shape.dart';
+import '../domain/face_shape_analyzer.dart';
 import 'widgets/hairstyle_result_card.dart';
 
 /// Màn hình hiển thị kết quả phân tích AI & gợi ý kiểu tóc chi tiết (Task 5.12, 5.14)
-class AIResultScreen extends ConsumerWidget {
+/// Màn hình hiển thị kết quả phân tích AI & gợi ý kiểu tóc chi tiết (Task 5.12, 5.14)
+class AIResultScreen extends ConsumerStatefulWidget {
   const AIResultScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AIResultScreen> createState() => _AIResultScreenState();
+}
+
+class _AIResultScreenState extends ConsumerState<AIResultScreen> {
+  int _visibleCount = 5;
+
+  @override
+  Widget build(BuildContext context) {
     final aiState = ref.watch(aiConsultProvider);
     final success = aiState.successResult;
 
@@ -29,7 +47,8 @@ class AIResultScreen extends ConsumerWidget {
         body: Center(
           child: EmptyState(
             title: 'Chưa có kết quả phân tích',
-            message: 'Vui lòng chụp ảnh hoặc chọn dáng mặt để xem gợi ý kiểu tóc.',
+            message:
+                'Vui lòng chụp ảnh hoặc chọn dáng mặt để xem gợi ý kiểu tóc.',
             actionText: 'Quay lại chụp ảnh',
             icon: Icons.camera_alt_outlined,
             onAction: () => context.pop(),
@@ -42,6 +61,15 @@ class AIResultScreen extends ConsumerWidget {
     final recommendation = success.recommendation!;
     final metrics = success.metrics;
     final executionMs = aiState.executionTimeMs ?? 45;
+
+    // Gộp danh sách gợi ý phù hợp nhất và thay thế để có đủ tối đa 10 kết quả
+    final allRecommendations = [
+      ...recommendation.primaryRecommendations,
+      ...recommendation.alternativeRecommendations,
+    ];
+    final displayedList = allRecommendations.take(_visibleCount).toList();
+    final canLoadMore =
+        allRecommendations.length > _visibleCount && _visibleCount < 10;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -90,10 +118,22 @@ class AIResultScreen extends ConsumerWidget {
                   size: 22,
                 ),
                 const SizedBox(width: AppDimensions.xs),
+                Expanded(
+                  child: Text(
+                    'Top Kiểu Tóc Phù Hợp Nhất',
+                    style: AppTextStyles.h3.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: AppDimensions.xs),
                 Text(
-                  'Top Kiểu Tóc Phù Hợp Nhất',
-                  style: AppTextStyles.h3.copyWith(
-                    color: AppColors.primary,
+                  '${displayedList.length}/${allRecommendations.length.clamp(0, 10)} kiểu',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.accent,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -102,11 +142,13 @@ class AIResultScreen extends ConsumerWidget {
             const SizedBox(height: AppDimensions.sm),
             Text(
               'Được tính toán và xếp hạng theo ma trận quy tắc chuyên gia kết hợp hình học khuôn mặt của bạn.',
-              style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
             const SizedBox(height: AppDimensions.md),
 
-            ...recommendation.primaryRecommendations.asMap().entries.map((entry) {
+            ...displayedList.asMap().entries.map((entry) {
               final index = entry.key;
               final rec = entry.value;
               return HairstyleResultCard(
@@ -119,23 +161,41 @@ class AIResultScreen extends ConsumerWidget {
               );
             }),
 
-            // 5. Gợi ý thay thế nếu có
-            if (recommendation.alternativeRecommendations.isNotEmpty) ...[
-              const SizedBox(height: AppDimensions.md),
-              Text(
-                'Kiểu tóc thay thế khác để thử nghiệm:',
-                style: AppTextStyles.h4.copyWith(color: AppColors.primary),
-              ),
+            // Nút xem thêm kiểu tóc (Tối đa 10 thẻ kết quả)
+            if (canLoadMore) ...[
               const SizedBox(height: AppDimensions.sm),
-              ...recommendation.alternativeRecommendations.map((rec) {
-                return HairstyleResultCard(
-                  rank: 4,
-                  recommendation: rec,
-                  onFindBarbers: () {
-                    context.push('/customer/search?hairstyleId=${rec.style.id}');
+              Center(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _visibleCount = (_visibleCount + 5).clamp(5, 10);
+                    });
                   },
-                );
-              }),
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: AppColors.accent,
+                  ),
+                  label: const Text(
+                    'Xem thêm kiểu tóc phù hợp (Tối đa 10 kiểu)',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.accent,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.accent, width: 1.5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    backgroundColor: AppColors.accent.withValues(alpha: 0.05),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppDimensions.md),
             ],
 
             const SizedBox(height: AppDimensions.xl),
@@ -179,7 +239,7 @@ class AIResultScreen extends ConsumerWidget {
 
   Widget _buildFaceShapeHeader(
     BuildContext context,
-    dynamic shape,
+    FaceShape shape,
     int executionMs,
   ) {
     return Container(
@@ -249,7 +309,11 @@ class AIResultScreen extends ConsumerWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.bolt_rounded, size: 14, color: Colors.amber),
+                    const Icon(
+                      Icons.bolt_rounded,
+                      size: 14,
+                      color: Colors.amber,
+                    ),
                     const SizedBox(width: 2),
                     Text(
                       '${executionMs}ms',
@@ -277,7 +341,7 @@ class AIResultScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMetricsCard(dynamic metrics) {
+  Widget _buildMetricsCard(FaceAnthropometricMetrics metrics) {
     return Container(
       padding: const EdgeInsets.all(AppDimensions.md),
       decoration: BoxDecoration(
@@ -290,7 +354,11 @@ class AIResultScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.straighten_rounded, color: AppColors.accent, size: 18),
+              const Icon(
+                Icons.straighten_rounded,
+                color: AppColors.accent,
+                size: 18,
+              ),
               const SizedBox(width: AppDimensions.xs),
               Text(
                 'Chỉ số hình học nhân trắc (132 Điểm Contours)',
@@ -311,7 +379,7 @@ class AIResultScreen extends ConsumerWidget {
               ),
               _buildMetricItem(
                 'Độ vuông hàm',
-                metrics.jawToCheekRatio.toStringAsFixed(2),
+                metrics.jawSquareness.toStringAsFixed(2),
                 '>= 0.86 là mặt vuông',
               ),
               _buildMetricItem(
@@ -349,7 +417,10 @@ class AIResultScreen extends ConsumerWidget {
           const SizedBox(height: 2),
           Text(
             hint,
-            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+            style: const TextStyle(
+              fontSize: 10,
+              color: AppColors.textSecondary,
+            ),
             textAlign: TextAlign.center,
           ),
         ],

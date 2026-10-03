@@ -1,6 +1,17 @@
+// ============================================================================
+// File: lib/features/barber_profile/presentation/widgets/location_picker.dart
+// Mục đích: Thành phần giao diện (Widget) con thuộc tính năng barber_profile.
+// Kết cấu:
+//  - Widget nhận dữ liệu và hiển thị UI, đóng gói giao diện cho gọn gàng.
+// ============================================================================
+
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../core/services/tile_server_config.dart';
@@ -27,14 +38,15 @@ class _LocationPickerState extends State<LocationPicker> {
   late TextEditingController _addressController;
   late LatLng _pickedLocation;
   bool _hasPickedLocation = false;
-  bool _isLocatingGps = false;
+  bool _isSearchingAddress = false;
 
   @override
   void initState() {
     super.initState();
     _addressController = TextEditingController(text: widget.initialAddress);
 
-    if (widget.initialLocation != null && widget.initialLocation!.latitude != 0.0) {
+    if (widget.initialLocation != null &&
+        widget.initialLocation!.latitude != 0.0) {
       _pickedLocation = LatLng(
         widget.initialLocation!.latitude,
         widget.initialLocation!.longitude,
@@ -61,39 +73,126 @@ class _LocationPickerState extends State<LocationPicker> {
     );
   }
 
-  /// Lấy vị trí GPS hiện tại của thiết bị
-  Future<void> _fetchCurrentGps() async {
-    setState(() => _isLocatingGps = true);
+  /// Geocoding địa chỉ qua OpenStreetMap Nominatim
+  /// Thử nhiều biến thể để tối đa tỷ lệ tìm thấy vị trí chính xác của tiệm
+  Future<LatLng?> _geocodeAddress(String rawAddress) async {
+    final cleanAddress = rawAddress.trim();
+    if (cleanAddress.isEmpty) return null;
+
+    final queries = <String>[];
+    queries.add(cleanAddress);
+
+    if (!cleanAddress.toLowerCase().contains('việt nam') &&
+        !cleanAddress.toLowerCase().contains('vietnam')) {
+      queries.add('$cleanAddress, Việt Nam');
+    }
+
+    // Nếu có dạng số/hẻm: ví dụ "109/24 Nguyễn Văn Luông" -> thử thêm cụm từ tên đường trở đi
+    if (cleanAddress.contains('/')) {
+      final textOnly = cleanAddress.replaceFirst(
+        RegExp(r'^[0-9\/A-Za-z]+[\s,]+'),
+        '',
+      );
+      if (textOnly.isNotEmpty && textOnly != cleanAddress) {
+        queries.add(textOnly);
+        queries.add('$textOnly, Việt Nam');
+      }
+    }
+
+    for (final q in queries) {
+      try {
+        final uri = Uri.https('nominatim.openstreetmap.org', '/search', {
+          'q': q,
+          'format': 'json',
+          'limit': '1',
+          'countrycodes': 'vn',
+        });
+
+        final res = await http
+            .get(
+              uri,
+              headers: {
+                'User-Agent': 'HairFit_AI_App/1.0 (contact: admin@hairfit.vn)',
+              },
+            )
+            .timeout(const Duration(seconds: 5));
+
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
+          if (data is List && data.isNotEmpty) {
+            final first = data[0];
+            final lat = double.tryParse(first['lat']?.toString() ?? '');
+            final lon = double.tryParse(first['lon']?.toString() ?? '');
+            if (lat != null && lon != null) {
+              return LatLng(lat, lon);
+            }
+          }
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  /// Tìm vị trí dựa CHÍNH XÁC trên địa chỉ thợ vừa nhập
+  /// Tuyệt đối không lấy vị trí GPS hiện tại của điện thoại
+  Future<void> _locateAddressFromText() async {
+    final text = _addressController.text.trim();
+    if (text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng nhập địa chỉ tiệm trước khi bấm tìm vị trí!'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSearchingAddress = true);
+
     try {
-      final result = await LocationService().getCurrentPosition();
-      if (mounted) {
+      final coordinates = await _geocodeAddress(text);
+
+      if (!mounted) return;
+
+      if (coordinates != null) {
         setState(() {
-          _pickedLocation = result.coordinates;
+          _pickedLocation = coordinates;
           _hasPickedLocation = true;
         });
         _updateParent();
 
         ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('📍 Đã định vị đúng địa chỉ tiệm trên bản đồ!'),
+            backgroundColor: AppColors.success,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      } else {
+        // Không tìm thấy tự động -> Gợi ý User tự ghim vị trí thủ công trên bản đồ
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              result.isFallback
-                  ? (result.errorMessage ?? 'Sử dụng vị trí mặc định')
-                  : 'Đã lấy toạ độ GPS thành công!',
+            content: const Text(
+              'Không tìm thấy toạ độ tự động. Bạn hãy nhấn vào bản đồ để tự ghim vị trí tiệm!',
             ),
-            duration: const Duration(seconds: 2),
-            backgroundColor: result.isFallback ? Colors.orange.shade800 : AppColors.success,
+            backgroundColor: Colors.orange.shade800,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Mở bản đồ',
+              textColor: Colors.white,
+              onPressed: _openFullScreenMap,
+            ),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Không thể lấy toạ độ: $e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Lỗi tìm kiếm: $e')));
       }
     } finally {
       if (mounted) {
-        setState(() => _isLocatingGps = false);
+        setState(() => _isSearchingAddress = false);
       }
     }
   }
@@ -130,7 +229,7 @@ class _LocationPickerState extends State<LocationPicker> {
           decoration: InputDecoration(
             hintText: 'VD: 123 Nguyễn Văn Linh, Hải Châu, Đà Nẵng',
             prefixIcon: const Icon(Icons.business_outlined),
-            suffixIcon: _isLocatingGps
+            suffixIcon: _isSearchingAddress
                 ? const Padding(
                     padding: EdgeInsets.all(12),
                     child: SizedBox(
@@ -140,9 +239,12 @@ class _LocationPickerState extends State<LocationPicker> {
                     ),
                   )
                 : IconButton(
-                    icon: const Icon(Icons.my_location, color: AppColors.accent),
-                    tooltip: 'Lấy GPS hiện tại',
-                    onPressed: _fetchCurrentGps,
+                    icon: const Icon(
+                      Icons.location_searching_rounded,
+                      color: AppColors.accent,
+                    ),
+                    tooltip: 'Tìm vị trí theo địa chỉ',
+                    onPressed: _locateAddressFromText,
                   ),
             floatingLabelBehavior: FloatingLabelBehavior.never,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -153,16 +255,27 @@ class _LocationPickerState extends State<LocationPicker> {
 
         // === Bản đồ preview — bấm để mở fullscreen ===
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Ghim vị trí trên bản đồ',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            const Expanded(
+              child: Text(
+                'Ghim vị trí trên bản đồ',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             TextButton.icon(
               onPressed: _openFullScreenMap,
-              icon: const Icon(Icons.open_in_full, size: 16),
-              label: const Text('Mở rộng bản đồ', style: TextStyle(fontSize: 13)),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                visualDensity: VisualDensity.compact,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              icon: const Icon(Icons.open_in_full, size: 14),
+              label: const Text(
+                'Mở rộng bản đồ',
+                style: TextStyle(fontSize: 12),
+              ),
             ),
           ],
         ),
@@ -194,7 +307,14 @@ class _LocationPickerState extends State<LocationPicker> {
                         ),
                       ),
                       children: [
-                        TileServerConfig.buildTileLayer(),
+                        ValueListenableBuilder<TileServerInfo>(
+                          valueListenable: TileServerConfig.serverNotifier,
+                          builder: (context, currentServer, _) {
+                            return TileServerConfig.buildTileLayer(
+                              server: currentServer,
+                            );
+                          },
+                        ),
                         MarkerLayer(
                           markers: [
                             Marker(
@@ -219,23 +339,33 @@ class _LocationPickerState extends State<LocationPicker> {
                     left: 0,
                     right: 0,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.65),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.touch_app, size: 16, color: Colors.white),
+                          const Icon(
+                            Icons.touch_app,
+                            size: 16,
+                            color: Colors.white,
+                          ),
                           const SizedBox(width: 6),
-                          Text(
-                            _hasPickedLocation
-                                ? 'Nhấn để điều chỉnh vị trí ghim chính xác'
-                                : 'Nhấn để mở bản đồ chọn vị trí tiệm',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
+                          Flexible(
+                            child: Text(
+                              _hasPickedLocation
+                                  ? 'Nhấn để điều chỉnh vị trí ghim chính xác'
+                                  : 'Nhấn để mở bản đồ chọn vị trí tiệm',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -252,11 +382,22 @@ class _LocationPickerState extends State<LocationPicker> {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.check_circle, size: 16, color: AppColors.success),
+              const Icon(
+                Icons.check_circle,
+                size: 16,
+                color: AppColors.success,
+              ),
               const SizedBox(width: 6),
-              Text(
-                'Toạ độ ghim: ${_pickedLocation.latitude.toStringAsFixed(5)}, ${_pickedLocation.longitude.toStringAsFixed(5)}',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade700, fontWeight: FontWeight.w500),
+              Expanded(
+                child: Text(
+                  'Toạ độ ghim: ${_pickedLocation.latitude.toStringAsFixed(5)}, ${_pickedLocation.longitude.toStringAsFixed(5)}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
@@ -312,9 +453,8 @@ class _FullScreenMapPickerState extends State<_FullScreenMapPicker> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi định vị: $e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Lỗi định vị: $e')));
       }
     } finally {
       if (mounted) {
@@ -352,7 +492,12 @@ class _FullScreenMapPickerState extends State<_FullScreenMapPicker> {
               },
             ),
             children: [
-              TileServerConfig.buildTileLayer(),
+              ValueListenableBuilder<TileServerInfo>(
+                valueListenable: TileServerConfig.serverNotifier,
+                builder: (context, currentServer, _) {
+                  return TileServerConfig.buildTileLayer(server: currentServer);
+                },
+              ),
             ],
           ),
 
@@ -364,7 +509,10 @@ class _FullScreenMapPickerState extends State<_FullScreenMapPicker> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primary,
                       borderRadius: BorderRadius.circular(8),
@@ -391,7 +539,11 @@ class _FullScreenMapPickerState extends State<_FullScreenMapPicker> {
                     color: Colors.red,
                     size: 48,
                     shadows: [
-                      Shadow(color: Colors.black38, blurRadius: 8, offset: Offset(0, 4)),
+                      Shadow(
+                        color: Colors.black38,
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
                     ],
                   ),
                 ],
@@ -431,7 +583,11 @@ class _FullScreenMapPickerState extends State<_FullScreenMapPicker> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline, size: 20, color: AppColors.accent),
+                  const Icon(
+                    Icons.info_outline,
+                    size: 20,
+                    color: AppColors.accent,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(

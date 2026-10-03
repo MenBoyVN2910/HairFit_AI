@@ -1,3 +1,10 @@
+// ============================================================================
+// File: test/search_provider_test.dart
+// Mục đích: Chứa các kịch bản kiểm thử (Test) cho search_provider.
+// Kết cấu:
+//  - Sử dụng flutter_test, bao gồm các nhóm test (group) và các trường hợp test (test/testWidgets) cụ thể.
+// ============================================================================
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hairfit_ai/core/utils/distance_helper.dart';
 import 'package:hairfit_ai/models/barber_profile_model.dart';
@@ -12,7 +19,10 @@ void main() {
       uid: 'b1',
       displayName: 'Tiệm Cắt Gần Nhất',
       address: '100 Nguyễn Văn Linh',
-      location: const GeoLocation(latitude: 16.0550, longitude: 108.2030), // ~100m
+      location: const GeoLocation(
+        latitude: 16.0550,
+        longitude: 108.2030,
+      ), // ~100m
       hairstyleIds: ['undercut', 'side_part'],
     );
 
@@ -20,7 +30,10 @@ void main() {
       uid: 'b2',
       displayName: 'Tiệm Ở Xa Phù Hợp Tóc',
       address: '900 Ngô Quyền',
-      location: const GeoLocation(latitude: 16.0800, longitude: 108.2300), // ~4km
+      location: const GeoLocation(
+        latitude: 16.0800,
+        longitude: 108.2300,
+      ), // ~4km
       hairstyleIds: ['pompadour', 'layer_male'],
     );
 
@@ -28,7 +41,10 @@ void main() {
       uid: 'b3',
       displayName: 'Tiệm Trung Bình',
       address: '200 Lê Duẩn',
-      location: const GeoLocation(latitude: 16.0680, longitude: 108.2160), // ~2km
+      location: const GeoLocation(
+        latitude: 16.0680,
+        longitude: 108.2160,
+      ), // ~2km
       hairstyleIds: ['undercut'],
     );
 
@@ -54,7 +70,10 @@ void main() {
       expect(processed[0].barber.uid, equals('b1'));
       expect(processed[1].barber.uid, equals('b3'));
       expect(processed[2].barber.uid, equals('b2'));
-      expect(processed[0].distanceMeters, lessThan(processed[1].distanceMeters));
+      expect(
+        processed[0].distanceMeters,
+        lessThan(processed[1].distanceMeters),
+      );
     });
 
     test('Hairstyle filter prioritizes matching barbers at the top', () {

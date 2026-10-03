@@ -1,3 +1,10 @@
+// ============================================================================
+// File: lib/core/utils/distance_helper.dart
+// Mục đích: Cung cấp các hàm tiện ích (Utility/Helper) dùng chung.
+// Kết cấu:
+//  - Các hàm logic nhỏ, tính toán, format dữ liệu độc lập với UI.
+// ============================================================================
+
 import 'dart:math' as math;
 
 /// Utility tính toán khoảng cách địa lý và định dạng khoảng cách (Task 3.3)
@@ -24,7 +31,8 @@ class DistanceHelper {
     final deltaLambda = (lon2 - lon1) * math.pi / 180.0;
 
     // Công thức Haversine
-    final a = math.sin(deltaPhi / 2.0) * math.sin(deltaPhi / 2.0) +
+    final a =
+        math.sin(deltaPhi / 2.0) * math.sin(deltaPhi / 2.0) +
         math.cos(phi1) *
             math.cos(phi2) *
             math.sin(deltaLambda / 2.0) *

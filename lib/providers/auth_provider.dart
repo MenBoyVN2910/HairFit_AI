@@ -1,5 +1,14 @@
+// ============================================================================
+// File: lib/providers/auth_provider.dart
+// Mục đích: Quản lý trạng thái (State Management) cho auth.
+// Kết cấu:
+//  - Sử dụng Riverpod (Notifier/StateNotifier/Provider) để cung cấp trạng thái và xử lý logic nghiệp vụ.
+// ============================================================================
+
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../core/services/auth_service.dart';
 import '../features/auth/data/auth_repository.dart';
 import '../models/user_model.dart';
@@ -80,6 +89,32 @@ class AuthNotifier extends AsyncNotifier<UserModel?> {
       final authRepo = ref.read(authRepositoryProvider);
       await authRepo.logout();
       state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
+  /// Cập nhật thông tin hồ sơ người dùng
+  Future<UserModel> updateProfile({
+    required String displayName,
+    String? avatarUrl,
+  }) async {
+    final currentUser = state.value;
+    if (currentUser == null) {
+      throw const AuthException('Người dùng chưa đăng nhập');
+    }
+
+    state = const AsyncValue.loading();
+    try {
+      final authRepo = ref.read(authRepositoryProvider);
+      final updatedUser = await authRepo.updateUserProfile(
+        uid: currentUser.uid,
+        displayName: displayName,
+        avatarUrl: avatarUrl,
+      );
+      state = AsyncValue.data(updatedUser);
+      return updatedUser;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
       rethrow;

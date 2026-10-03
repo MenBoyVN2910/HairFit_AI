@@ -1,3 +1,10 @@
+// ============================================================================
+// File: test/booking_provider_test.dart
+// Mục đích: Chứa các kịch bản kiểm thử (Test) cho booking_provider.
+// Kết cấu:
+//  - Sử dụng flutter_test, bao gồm các nhóm test (group) và các trường hợp test (test/testWidgets) cụ thể.
+// ============================================================================
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hairfit_ai/features/booking/data/slot_service.dart';
 import 'package:hairfit_ai/models/barber_profile_model.dart';
@@ -27,7 +34,11 @@ void main() {
       location: const GeoLocation(latitude: 16.0, longitude: 108.0),
       services: const [service1, service2],
       workingHours: {
-        'mon': const DayWorkingHours(closed: false, open: '08:00', close: '20:00'),
+        'mon': const DayWorkingHours(
+          closed: false,
+          open: '08:00',
+          close: '20:00',
+        ),
       },
     );
 
@@ -35,7 +46,9 @@ void main() {
       final stateEmpty = BookingState();
       expect(stateEmpty.canSubmit, isFalse);
 
-      final stateWithService = stateEmpty.copyWith(selectedService: barber.services.first);
+      final stateWithService = stateEmpty.copyWith(
+        selectedService: barber.services.first,
+      );
       expect(stateWithService.canSubmit, isFalse);
 
       final unavailableSlot = AvailableSlot(
@@ -61,29 +74,30 @@ void main() {
         endTimestamp: DateTime(2026, 10, 10, 10, 30),
       );
 
-      final stateReady = stateWithService.copyWith(
-        selectedSlot: availableSlot,
-      );
+      final stateReady = stateWithService.copyWith(selectedSlot: availableSlot);
       expect(stateReady.canSubmit, isTrue);
 
       final stateSubmitting = stateReady.copyWith(isSubmitting: true);
       expect(stateSubmitting.canSubmit, isFalse);
     });
 
-    test('AppointmentActionState copyWith and clearMessages work as expected', () {
-      const initial = AppointmentActionState();
-      expect(initial.isLoading, isFalse);
-      expect(initial.errorMessage, isNull);
-      expect(initial.successMessage, isNull);
+    test(
+      'AppointmentActionState copyWith and clearMessages work as expected',
+      () {
+        const initial = AppointmentActionState();
+        expect(initial.isLoading, isFalse);
+        expect(initial.errorMessage, isNull);
+        expect(initial.successMessage, isNull);
 
-      final withSuccess = initial.copyWith(
-        isLoading: false,
-        successMessage: 'Thành công!',
-      );
-      expect(withSuccess.successMessage, 'Thành công!');
+        final withSuccess = initial.copyWith(
+          isLoading: false,
+          successMessage: 'Thành công!',
+        );
+        expect(withSuccess.successMessage, 'Thành công!');
 
-      final cleared = withSuccess.copyWith(clearMessages: true);
-      expect(cleared.successMessage, isNull);
-    });
+        final cleared = withSuccess.copyWith(clearMessages: true);
+        expect(cleared.successMessage, isNull);
+      },
+    );
   });
 }

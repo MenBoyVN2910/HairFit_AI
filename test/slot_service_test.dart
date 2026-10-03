@@ -1,3 +1,10 @@
+// ============================================================================
+// File: test/slot_service_test.dart
+// Mục đích: Chứa các kịch bản kiểm thử (Test) cho slot_service.
+// Kết cấu:
+//  - Sử dụng flutter_test, bao gồm các nhóm test (group) và các trường hợp test (test/testWidgets) cụ thể.
+// ============================================================================
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hairfit_ai/features/booking/data/slot_service.dart';
 import 'package:hairfit_ai/models/barber_profile_model.dart';
@@ -43,13 +50,41 @@ void main() {
         location: const GeoLocation(latitude: 16.06, longitude: 108.21),
         services: [service30m, service60m, service90m],
         workingHours: {
-          'mon': const DayWorkingHours(closed: false, open: '09:00', close: '12:00'), // 3 tiếng = 6 slots 30m
-          'tue': const DayWorkingHours(closed: false, open: '08:00', close: '20:00'),
-          'wed': const DayWorkingHours(closed: false, open: '09:00', close: '18:00'),
-          'thu': const DayWorkingHours(closed: false, open: '09:00', close: '18:00'),
-          'fri': const DayWorkingHours(closed: false, open: '09:00', close: '18:00'),
-          'sat': const DayWorkingHours(closed: false, open: '09:00', close: '18:00'),
-          'sun': const DayWorkingHours(closed: true, open: '09:00', close: '18:00'), // Chủ nhật nghỉ
+          'mon': const DayWorkingHours(
+            closed: false,
+            open: '09:00',
+            close: '12:00',
+          ), // 3 tiếng = 6 slots 30m
+          'tue': const DayWorkingHours(
+            closed: false,
+            open: '08:00',
+            close: '20:00',
+          ),
+          'wed': const DayWorkingHours(
+            closed: false,
+            open: '09:00',
+            close: '18:00',
+          ),
+          'thu': const DayWorkingHours(
+            closed: false,
+            open: '09:00',
+            close: '18:00',
+          ),
+          'fri': const DayWorkingHours(
+            closed: false,
+            open: '09:00',
+            close: '18:00',
+          ),
+          'sat': const DayWorkingHours(
+            closed: false,
+            open: '09:00',
+            close: '18:00',
+          ),
+          'sun': const DayWorkingHours(
+            closed: true,
+            open: '09:00',
+            close: '18:00',
+          ), // Chủ nhật nghỉ
         },
         exceptions: [
           const WorkException(
@@ -78,21 +113,24 @@ void main() {
       expect(SlotService.minutesToTime(750), '12:30');
     });
 
-    test('Returns empty slots when barber is closed on that weekday (Sunday)', () {
-      // 2026-10-11 là Chủ nhật
-      final sunday = DateTime(2026, 10, 11);
-      final currentMockTime = DateTime(2026, 10, 10, 8, 0);
+    test(
+      'Returns empty slots when barber is closed on that weekday (Sunday)',
+      () {
+        // 2026-10-11 là Chủ nhật
+        final sunday = DateTime(2026, 10, 11);
+        final currentMockTime = DateTime(2026, 10, 10, 8, 0);
 
-      final slots = slotService.generateAvailableSlots(
-        barberProfile: sampleBarber,
-        selectedDate: sunday,
-        selectedService: service30m,
-        existingBookedSlots: [],
-        currentTime: currentMockTime,
-      );
+        final slots = slotService.generateAvailableSlots(
+          barberProfile: sampleBarber,
+          selectedDate: sunday,
+          selectedService: service30m,
+          existingBookedSlots: [],
+          currentTime: currentMockTime,
+        );
 
-      expect(slots, isEmpty);
-    });
+        expect(slots, isEmpty);
+      },
+    );
 
     test('Returns empty slots when selected date matches closed exception (Task 4.2)', () {
       // 2026-10-15 có trong exceptions (closed: true)
@@ -180,41 +218,44 @@ void main() {
       ]);
     });
 
-    test('Enforces lead time rule (30 minutes ahead) for same-day bookings', () {
-      // Đặt cho ngày hôm nay lúc 09:40
-      // Lead time cutoff là 09:40 + 30m = 10:10
-      // Khung giờ 09:00, 09:30, 10:00 phải bị đánh dấu không khả dụng
-      // Khung giờ từ 10:30 trở đi mới khả dụng
-      final monday = DateTime(2026, 10, 12);
-      final sameDayTime = DateTime(2026, 10, 12, 9, 40);
+    test(
+      'Enforces lead time rule (30 minutes ahead) for same-day bookings',
+      () {
+        // Đặt cho ngày hôm nay lúc 09:40
+        // Lead time cutoff là 09:40 + 30m = 10:10
+        // Khung giờ 09:00, 09:30, 10:00 phải bị đánh dấu không khả dụng
+        // Khung giờ từ 10:30 trở đi mới khả dụng
+        final monday = DateTime(2026, 10, 12);
+        final sameDayTime = DateTime(2026, 10, 12, 9, 40);
 
-      final slots = slotService.generateAvailableSlots(
-        barberProfile: sampleBarber,
-        selectedDate: monday,
-        selectedService: service30m,
-        existingBookedSlots: [],
-        currentTime: sameDayTime,
-      );
+        final slots = slotService.generateAvailableSlots(
+          barberProfile: sampleBarber,
+          selectedDate: monday,
+          selectedService: service30m,
+          existingBookedSlots: [],
+          currentTime: sameDayTime,
+        );
 
-      expect(slots.length, 6);
-      expect(slots[0].startTime, '09:00');
-      expect(slots[0].isAvailable, isFalse); // < 09:40 (quá khứ)
+        expect(slots.length, 6);
+        expect(slots[0].startTime, '09:00');
+        expect(slots[0].isAvailable, isFalse); // < 09:40 (quá khứ)
 
-      expect(slots[1].startTime, '09:30');
-      expect(slots[1].isAvailable, isFalse); // < 09:40 (quá khứ)
+        expect(slots[1].startTime, '09:30');
+        expect(slots[1].isAvailable, isFalse); // < 09:40 (quá khứ)
 
-      expect(slots[2].startTime, '10:00');
-      expect(slots[2].isAvailable, isFalse); // < 10:10 (sát giờ < 30m)
+        expect(slots[2].startTime, '10:00');
+        expect(slots[2].isAvailable, isFalse); // < 10:10 (sát giờ < 30m)
 
-      expect(slots[3].startTime, '10:30');
-      expect(slots[3].isAvailable, isTrue); // >= 10:10 (hợp lệ)
+        expect(slots[3].startTime, '10:30');
+        expect(slots[3].isAvailable, isTrue); // >= 10:10 (hợp lệ)
 
-      expect(slots[4].startTime, '11:00');
-      expect(slots[4].isAvailable, isTrue);
+        expect(slots[4].startTime, '11:00');
+        expect(slots[4].isAvailable, isTrue);
 
-      expect(slots[5].startTime, '11:30');
-      expect(slots[5].isAvailable, isTrue);
-    });
+        expect(slots[5].startTime, '11:30');
+        expect(slots[5].isAvailable, isTrue);
+      },
+    );
 
     test('Correctly marks slots unavailable when already booked in existingBookedSlots', () {
       final monday = DateTime(2026, 10, 12);

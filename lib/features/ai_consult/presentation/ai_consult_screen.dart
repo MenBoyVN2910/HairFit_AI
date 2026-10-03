@@ -1,8 +1,17 @@
+// ============================================================================
+// File: lib/features/ai_consult/presentation/ai_consult_screen.dart
+// Mục đích: Màn hình giao diện (Screen) chính của tính năng ai_consult.
+// Kết cấu:
+//  - Sử dụng ConsumerWidget/StatefulWidget, kết nối UI với Provider để hiển thị trạng thái và xử lý sự kiện người dùng.
+// ============================================================================
+
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -71,30 +80,34 @@ class _AIConsultScreenState extends ConsumerState<AIConsultScreen> {
               ),
             ],
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'HairFit AI ứng dụng công nghệ 100% On-Device AI xử lý hoàn toàn cục bộ trên thiết bị của bạn:',
-                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: AppDimensions.sm),
-              _buildConsentBullet(
-                Icons.check_circle_outline_rounded,
-                'Ảnh chân dung KHÔNG BAO GIỜ bị tải lên đám mây hoặc lưu trữ trên Firebase.',
-              ),
-              const SizedBox(height: AppDimensions.xs),
-              _buildConsentBullet(
-                Icons.check_circle_outline_rounded,
-                'Toạ độ 132 điểm viền khuôn mặt được phân tích trong bộ nhớ RAM tạm thời (< 60ms) và tự hủy sau phiên tư vấn.',
-              ),
-              const SizedBox(height: AppDimensions.xs),
-              _buildConsentBullet(
-                Icons.check_circle_outline_rounded,
-                'Hoạt động hoàn toàn ngoại tuyến (Offline), không làm lộ dữ liệu sinh trắc học.',
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'HairFit AI ứng dụng công nghệ 100% On-Device AI xử lý hoàn toàn cục bộ trên thiết bị của bạn:',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.sm),
+                _buildConsentBullet(
+                  Icons.check_circle_outline_rounded,
+                  'Ảnh chân dung KHÔNG BAO GIỜ bị tải lên đám mây hoặc lưu trữ trên Firebase.',
+                ),
+                const SizedBox(height: AppDimensions.xs),
+                _buildConsentBullet(
+                  Icons.check_circle_outline_rounded,
+                  'Toạ độ 132 điểm viền khuôn mặt được phân tích trong bộ nhớ RAM tạm thời (< 60ms) và tự hủy sau phiên tư vấn.',
+                ),
+                const SizedBox(height: AppDimensions.xs),
+                _buildConsentBullet(
+                  Icons.check_circle_outline_rounded,
+                  'Hoạt động hoàn toàn ngoại tuyến (Offline), không làm lộ dữ liệu sinh trắc học.',
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -105,7 +118,9 @@ class _AIConsultScreenState extends ConsumerState<AIConsultScreen> {
               },
               child: Text(
                 'Chọn thủ công',
-                style: AppTextStyles.buttonMedium.copyWith(color: AppColors.textSecondary),
+                style: AppTextStyles.buttonMedium.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
             ElevatedButton(
@@ -137,7 +152,9 @@ class _AIConsultScreenState extends ConsumerState<AIConsultScreen> {
         Expanded(
           child: Text(
             text,
-            style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
         ),
       ],
@@ -183,7 +200,88 @@ class _AIConsultScreenState extends ConsumerState<AIConsultScreen> {
     if (result is AIConsultSuccess) {
       // Chuyển tiếp sang màn hình kết quả (Task 5.12)
       context.push('/customer/ai-result');
+    } else if (result is AIConsultValidationFailed) {
+      _showFaceValidationErrorDialog(result.message, result.hint);
+    } else if (result is AIConsultError) {
+      _showFaceValidationErrorDialog(
+        result.message,
+        'Không thể nhận diện được khuôn mặt từ bức ảnh này. Vui lòng chọn ảnh chụp rõ mặt nhìn thẳng hoặc thử chọn dáng mặt thủ công.',
+      );
     }
+  }
+
+  void _showFaceValidationErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: AppDimensions.borderRadiusLg,
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppDimensions.xs),
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.no_photography_outlined,
+                color: AppColors.error,
+                size: 26,
+              ),
+            ),
+            const SizedBox(width: AppDimensions.sm),
+            const Expanded(
+              child: Text('Ảnh Không Hợp Lệ', style: AppTextStyles.h4),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.error,
+                ),
+              ),
+              const SizedBox(height: AppDimensions.xs),
+              Text(
+                message,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.textPrimary,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogCtx).pop();
+              context.push('/customer/manual-select');
+            },
+            child: const Text('Chọn thủ công'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(dialogCtx).pop();
+              _pickImage(ImageSource.gallery);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.accent,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Chọn ảnh khác'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -281,13 +379,19 @@ class _AIConsultScreenState extends ConsumerState<AIConsultScreen> {
                   selectedLength: aiState.selectedLength,
                   selectedTexture: aiState.selectedTexture,
                   onGenderChanged: (val) {
-                    ref.read(aiConsultProvider.notifier).setPreferences(gender: val);
+                    ref
+                        .read(aiConsultProvider.notifier)
+                        .setPreferences(gender: val);
                   },
                   onLengthChanged: (val) {
-                    ref.read(aiConsultProvider.notifier).setPreferences(length: val);
+                    ref
+                        .read(aiConsultProvider.notifier)
+                        .setPreferences(length: val);
                   },
                   onTextureChanged: (val) {
-                    ref.read(aiConsultProvider.notifier).setPreferences(texture: val);
+                    ref
+                        .read(aiConsultProvider.notifier)
+                        .setPreferences(texture: val);
                   },
                 ),
                 const SizedBox(height: AppDimensions.xl),
@@ -354,7 +458,9 @@ class _AIConsultScreenState extends ConsumerState<AIConsultScreen> {
         color: Colors.white,
         borderRadius: AppDimensions.borderRadiusLg,
         border: Border.all(
-          color: hasImage ? AppColors.accent.withValues(alpha: 0.5) : AppColors.divider,
+          color: hasImage
+              ? AppColors.accent.withValues(alpha: 0.5)
+              : AppColors.divider,
         ),
         boxShadow: [
           BoxShadow(
@@ -385,7 +491,11 @@ class _AIConsultScreenState extends ConsumerState<AIConsultScreen> {
                     backgroundColor: Colors.black54,
                     radius: 18,
                     child: IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white, size: 18),
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 18,
+                      ),
                       onPressed: () {
                         ref.read(aiConsultProvider.notifier).clearImage();
                       },

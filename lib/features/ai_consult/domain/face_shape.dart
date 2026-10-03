@@ -1,3 +1,10 @@
+// ============================================================================
+// File: lib/features/ai_consult/domain/face_shape.dart
+// Mục đích: Định nghĩa logic nghiệp vụ cốt lõi (Domain/Entity) cho tính năng ai_consult.
+// Kết cấu:
+//  - Các lớp xử lý logic độc lập, không phụ thuộc vào UI hay Framework (VD: AI Analyzer).
+// ============================================================================
+
 /// Các dáng khuôn mặt chuẩn mà hệ thống HairFit AI phân loại
 enum FaceShape {
   oval,

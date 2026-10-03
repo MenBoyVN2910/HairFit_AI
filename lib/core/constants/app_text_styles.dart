@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/core/constants/app_text_styles.dart
+// Mục đích: Lưu trữ các hằng số dùng chung toàn ứng dụng.
+// Kết cấu:
+//  - Các biến static const như màu sắc, kích thước, text style hoặc business rules.
+// ============================================================================
+
 import 'package:flutter/material.dart';
+
 import 'app_colors.dart';
 
 /// Hệ thống kiểu chữ (Typography) của HairFit AI

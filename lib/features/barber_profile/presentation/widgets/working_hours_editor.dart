@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/features/barber_profile/presentation/widgets/working_hours_editor.dart
+// Mục đích: Thành phần giao diện (Widget) con thuộc tính năng barber_profile.
+// Kết cấu:
+//  - Widget nhận dữ liệu và hiển thị UI, đóng gói giao diện cho gọn gàng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
+
 import '../../../../models/barber_profile_model.dart';
 
 class WorkingHoursEditor extends StatefulWidget {
@@ -34,12 +42,20 @@ class _WorkingHoursEditorState extends State<WorkingHoursEditor> {
     _hours = Map.from(widget.initialHours);
     if (_hours.isEmpty) {
       for (final day in _dayLabels.keys) {
-        _hours[day] = const DayWorkingHours(closed: false, open: '09:00', close: '19:00');
+        _hours[day] = const DayWorkingHours(
+          closed: false,
+          open: '09:00',
+          close: '19:00',
+        );
       }
     }
   }
 
-  Future<void> _selectTime(BuildContext context, String day, bool isOpenTime) async {
+  Future<void> _selectTime(
+    BuildContext context,
+    String day,
+    bool isOpenTime,
+  ) async {
     final currentStr = isOpenTime ? _hours[day]!.open : _hours[day]!.close;
     final parts = currentStr.split(':');
     final initialTime = TimeOfDay(
@@ -55,7 +71,8 @@ class _WorkingHoursEditorState extends State<WorkingHoursEditor> {
 
     if (picked != null) {
       setState(() {
-        final timeStr = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+        final timeStr =
+            '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
         final current = _hours[day]!;
         _hours[day] = DayWorkingHours(
           closed: current.closed,
@@ -78,12 +95,18 @@ class _WorkingHoursEditorState extends State<WorkingHoursEditor> {
         return Card(
           margin: const EdgeInsets.only(bottom: 8.0),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: Row(
               children: [
                 SizedBox(
                   width: 80,
-                  child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(
+                    label,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
                 Switch(
                   value: !current.closed,
@@ -103,7 +126,10 @@ class _WorkingHoursEditorState extends State<WorkingHoursEditor> {
                     child: InkWell(
                       onTap: () => _selectTime(context, day, true),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey.shade300),
                           borderRadius: BorderRadius.circular(4),
@@ -120,7 +146,10 @@ class _WorkingHoursEditorState extends State<WorkingHoursEditor> {
                     child: InkWell(
                       onTap: () => _selectTime(context, day, false),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey.shade300),
                           borderRadius: BorderRadius.circular(4),
@@ -131,7 +160,11 @@ class _WorkingHoursEditorState extends State<WorkingHoursEditor> {
                   ),
                 ] else ...[
                   const Expanded(
-                    child: Text('Nghỉ', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+                    child: Text(
+                      'Nghỉ',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey),
+                    ),
                   ),
                 ],
               ],

@@ -1,3 +1,10 @@
+// ============================================================================
+// File: lib/core/utils/date_formatter.dart
+// Mục đích: Cung cấp các hàm tiện ích (Utility/Helper) dùng chung.
+// Kết cấu:
+//  - Các hàm logic nhỏ, tính toán, format dữ liệu độc lập với UI.
+// ============================================================================
+
 import 'package:intl/intl.dart';
 
 /// Tiện ích định dạng ngày giờ và tiền tệ chuẩn Việt Nam
@@ -32,7 +39,7 @@ class DateFormatter {
       'Thứ 5',
       'Thứ 6',
       'Thứ 7',
-      'Chủ nhật'
+      'Chủ nhật',
     ];
     final dayOfWeek = weekdayNames[dateTime.weekday];
     final formattedDate = DateFormat('dd/MM/yyyy').format(dateTime);

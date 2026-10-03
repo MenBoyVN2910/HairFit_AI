@@ -1,7 +1,16 @@
+// ============================================================================
+// File: lib/features/ai_consult/presentation/ai_spike_test_screen.dart
+// Mục đích: Màn hình giao diện (Screen) chính của tính năng ai_consult.
+// Kết cấu:
+//  - Sử dụng ConsumerWidget/StatefulWidget, kết nối UI với Provider để hiển thị trạng thái và xử lý sự kiện người dùng.
+// ============================================================================
+
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image_picker/image_picker.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -23,7 +32,8 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
   final ImagePicker _picker = ImagePicker();
   final FaceValidationService _faceValidator = FaceValidationService();
   final FaceShapeAnalyzer _faceShapeAnalyzer = const FaceShapeAnalyzer();
-  final HairstyleRecommendationEngine _recommendationEngine = const HairstyleRecommendationEngine();
+  final HairstyleRecommendationEngine _recommendationEngine =
+      const HairstyleRecommendationEngine();
 
   XFile? _selectedImage;
 
@@ -66,9 +76,8 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi chọn ảnh: $e')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Lỗi khi chọn ảnh: $e')));
     }
   }
 
@@ -120,9 +129,8 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
     } catch (e) {
       stopwatch.stop();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi kiểm tra On-Device: $e')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Lỗi kiểm tra On-Device: $e')));
     } finally {
       setState(() {
         _isTestingMlKit = false;
@@ -144,7 +152,31 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
       });
     } catch (e) {
       setState(() {
-        _seedStatusMessage = '⚠️ Lỗi nạp Seed Data: $e\n(Hãy bật Firestore Database trên Firebase Console)';
+        _seedStatusMessage =
+            '⚠️ Lỗi nạp Seed Data: $e\n(Hãy bật Firestore Database trên Firebase Console)';
+      });
+    } finally {
+      setState(() {
+        _isSeeding = false;
+      });
+    }
+  }
+
+  Future<void> _runClearSampleBarbers() async {
+    setState(() {
+      _isSeeding = true;
+      _seedStatusMessage = 'Đang xoá 5 thợ mẫu Seed Data khỏi Firestore...';
+    });
+
+    try {
+      final seedService = SeedDataService();
+      await seedService.clearSampleBarbers();
+      setState(() {
+        _seedStatusMessage = '🗑️ Đã xoá sạch 5 thợ mẫu Seed Data thành công!';
+      });
+    } catch (e) {
+      setState(() {
+        _seedStatusMessage = '⚠️ Lỗi xoá Seed Data: $e';
       });
     } finally {
       setState(() {
@@ -188,7 +220,10 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('1. Chọn hoặc chụp ảnh khuôn mặt', style: AppTextStyles.h4),
+            const Text(
+              '1. Chọn hoặc chụp ảnh khuôn mặt',
+              style: AppTextStyles.h4,
+            ),
             const SizedBox(height: AppDimensions.sm),
             if (_selectedImage != null) ...[
               ClipRRect(
@@ -213,9 +248,16 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
                 child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.face_retouching_natural, size: 48, color: AppColors.textSecondary),
+                    Icon(
+                      Icons.face_retouching_natural,
+                      size: 48,
+                      color: AppColors.textSecondary,
+                    ),
                     SizedBox(height: AppDimensions.xs),
-                    Text('Chưa có ảnh nào được chọn', style: AppTextStyles.bodyMedium),
+                    Text(
+                      'Chưa có ảnh nào được chọn',
+                      style: AppTextStyles.bodyMedium,
+                    ),
                   ],
                 ),
               ),
@@ -257,18 +299,26 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Expanded(
-                  child: Text('2. Phân Tích Hình Học On-Device (ML Kit Contours)', style: AppTextStyles.h4),
+                  child: Text(
+                    '2. Phân Tích Hình Học On-Device (ML Kit Contours)',
+                    style: AppTextStyles.h4,
+                  ),
                 ),
                 if (_analysisLatencyMs != null && _mlKitLatencyMs != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.successLight,
                       borderRadius: AppDimensions.borderRadiusSm,
                     ),
                     child: Text(
                       'ML: ${_mlKitLatencyMs}ms | Thuật toán: ${_analysisLatencyMs}ms',
-                      style: AppTextStyles.badgeText.copyWith(color: AppColors.success),
+                      style: AppTextStyles.badgeText.copyWith(
+                        color: AppColors.success,
+                      ),
                     ),
                   ),
               ],
@@ -289,10 +339,14 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
               Container(
                 padding: const EdgeInsets.all(AppDimensions.md),
                 decoration: BoxDecoration(
-                  color: _mlKitResult!.isValid ? AppColors.successLight : AppColors.errorLight,
+                  color: _mlKitResult!.isValid
+                      ? AppColors.successLight
+                      : AppColors.errorLight,
                   borderRadius: AppDimensions.borderRadiusSm,
                   border: Border.all(
-                    color: _mlKitResult!.isValid ? AppColors.success : AppColors.error,
+                    color: _mlKitResult!.isValid
+                        ? AppColors.success
+                        : AppColors.error,
                   ),
                 ),
                 child: Column(
@@ -301,29 +355,57 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
                     Row(
                       children: [
                         Icon(
-                          _mlKitResult!.isValid ? Icons.check_circle : Icons.error,
-                          color: _mlKitResult!.isValid ? AppColors.success : AppColors.error,
+                          _mlKitResult!.isValid
+                              ? Icons.check_circle
+                              : Icons.error,
+                          color: _mlKitResult!.isValid
+                              ? AppColors.success
+                              : AppColors.error,
                         ),
                         const SizedBox(width: AppDimensions.sm),
                         Expanded(
                           child: Text(
-                            _mlKitResult!.isValid ? 'ẢNH HỢP LỆ VÀ ĐÃ TRÍCH XUẤT ĐƯỢC ĐIỂM VIỀN' : 'ẢNH KHÔNG ĐẠT YÊU CẦU',
+                            _mlKitResult!.isValid
+                                ? 'ẢNH HỢP LỆ VÀ ĐÃ TRÍCH XUẤT ĐƯỢC ĐIỂM VIỀN'
+                                : 'ẢNH KHÔNG ĐẠT YÊU CẦU',
                             style: AppTextStyles.labelMedium.copyWith(
-                              color: _mlKitResult!.isValid ? AppColors.success : AppColors.error,
+                              color: _mlKitResult!.isValid
+                                  ? AppColors.success
+                                  : AppColors.error,
                             ),
                           ),
                         ),
                       ],
                     ),
                     const Divider(height: AppDimensions.md),
-                    Text('• Góc nghiêng ngang (Euler Y): ${_mlKitResult!.eulerY?.toStringAsFixed(1)}° (Chuẩn <= 20°)', style: AppTextStyles.bodySmall),
-                    Text('• Góc cúi/ngửa (Euler X): ${_mlKitResult!.eulerX?.toStringAsFixed(1)}° (Chuẩn <= 15°)', style: AppTextStyles.bodySmall),
-                    Text('• Chiều rộng khuôn mặt: ${_mlKitResult!.boundingBoxWidth?.toStringAsFixed(0)}px', style: AppTextStyles.bodySmall),
+                    Text(
+                      '• Góc nghiêng ngang (Euler Y): ${_mlKitResult!.eulerY?.toStringAsFixed(1)}° (Chuẩn <= 20°)',
+                      style: AppTextStyles.bodySmall,
+                    ),
+                    Text(
+                      '• Góc cúi/ngửa (Euler X): ${_mlKitResult!.eulerX?.toStringAsFixed(1)}° (Chuẩn <= 15°)',
+                      style: AppTextStyles.bodySmall,
+                    ),
+                    Text(
+                      '• Chiều rộng khuôn mặt: ${_mlKitResult!.boundingBoxWidth?.toStringAsFixed(0)}px',
+                      style: AppTextStyles.bodySmall,
+                    ),
                     if (!_mlKitResult!.isValid) ...[
                       const SizedBox(height: AppDimensions.xs),
-                      Text('Lỗi: ${_mlKitResult!.errorMessage}', style: AppTextStyles.bodySmall.copyWith(color: AppColors.error, fontWeight: FontWeight.bold)),
+                      Text(
+                        'Lỗi: ${_mlKitResult!.errorMessage}',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.error,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       if (_mlKitResult!.errorHint != null)
-                        Text('Hướng dẫn: ${_mlKitResult!.errorHint}', style: AppTextStyles.caption.copyWith(color: AppColors.error)),
+                        Text(
+                          'Hướng dẫn: ${_mlKitResult!.errorHint}',
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.error,
+                          ),
+                        ),
                     ],
                   ],
                 ),
@@ -336,37 +418,66 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.05),
                   borderRadius: AppDimensions.borderRadiusSm,
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.auto_awesome, color: AppColors.primary, size: 20),
+                        const Icon(
+                          Icons.auto_awesome,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
                         const SizedBox(width: AppDimensions.xs),
                         Expanded(
                           child: Text(
                             'KẾT QUẢ DÁNG MẶT: ${_faceMetrics!.faceShape.displayNameVi.toUpperCase()}',
-                            style: AppTextStyles.h4.copyWith(color: AppColors.primary),
+                            style: AppTextStyles.h4.copyWith(
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: AppDimensions.xs),
-                    Text(_faceMetrics!.explanationVi, style: AppTextStyles.bodySmall),
+                    Text(
+                      _faceMetrics!.explanationVi,
+                      style: AppTextStyles.bodySmall,
+                    ),
                     const Divider(height: AppDimensions.md),
-                    const Text('Chi tiết chỉ số nhân trắc học hình học:', style: AppTextStyles.labelMedium),
+                    const Text(
+                      'Chi tiết chỉ số nhân trắc học hình học:',
+                      style: AppTextStyles.labelMedium,
+                    ),
                     const SizedBox(height: AppDimensions.xs),
                     Wrap(
                       spacing: AppDimensions.sm,
                       runSpacing: AppDimensions.xs,
                       children: [
-                        _buildMetricChip('Tỷ lệ dài/rộng', _faceMetrics!.aspectRatio.toStringAsFixed(2)),
-                        _buildMetricChip('Độ vuông góc hàm', '${(_faceMetrics!.jawSquareness * 100).toStringAsFixed(0)}%'),
-                        _buildMetricChip('Tỷ lệ trán/hàm', _faceMetrics!.foreheadToJawRatio.toStringAsFixed(2)),
-                        _buildMetricChip('Độ tin cậy', '${(_faceMetrics!.confidence * 100).toStringAsFixed(0)}%'),
-                        _buildMetricChip('Điểm viền contour', '${_faceMetrics!.contourPointsCount} pts'),
+                        _buildMetricChip(
+                          'Tỷ lệ dài/rộng',
+                          _faceMetrics!.aspectRatio.toStringAsFixed(2),
+                        ),
+                        _buildMetricChip(
+                          'Độ vuông góc hàm',
+                          '${(_faceMetrics!.jawSquareness * 100).toStringAsFixed(0)}%',
+                        ),
+                        _buildMetricChip(
+                          'Tỷ lệ trán/hàm',
+                          _faceMetrics!.foreheadToJawRatio.toStringAsFixed(2),
+                        ),
+                        _buildMetricChip(
+                          'Độ tin cậy',
+                          '${(_faceMetrics!.confidence * 100).toStringAsFixed(0)}%',
+                        ),
+                        _buildMetricChip(
+                          'Điểm viền contour',
+                          '${_faceMetrics!.contourPointsCount} pts',
+                        ),
                       ],
                     ),
                   ],
@@ -389,7 +500,10 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
       ),
       child: Text(
         '$label: $value',
-        style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        style: AppTextStyles.caption.copyWith(
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
       ),
     );
   }
@@ -404,7 +518,11 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.content_cut, color: AppColors.primary, size: 22),
+                const Icon(
+                  Icons.content_cut,
+                  color: AppColors.primary,
+                  size: 22,
+                ),
                 const SizedBox(width: AppDimensions.sm),
                 Expanded(
                   child: Text(
@@ -424,16 +542,29 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('💡 Lời khuyên vàng: ${result.generalAdviceVi}', style: AppTextStyles.bodySmall),
+                  Text(
+                    '💡 Lời khuyên vàng: ${result.generalAdviceVi}',
+                    style: AppTextStyles.bodySmall,
+                  ),
                   const SizedBox(height: AppDimensions.xs),
-                  Text('⚠️ Nên tránh: ${result.avoidAdviceVi}', style: AppTextStyles.bodySmall.copyWith(color: AppColors.error)),
+                  Text(
+                    '⚠️ Nên tránh: ${result.avoidAdviceVi}',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.error,
+                    ),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: AppDimensions.md),
-            const Text('Danh sách kiểu tóc phù hợp nhất từ Catalog:', style: AppTextStyles.labelMedium),
+            const Text(
+              'Danh sách kiểu tóc phù hợp nhất từ Catalog:',
+              style: AppTextStyles.labelMedium,
+            ),
             const SizedBox(height: AppDimensions.sm),
-            ...result.primaryRecommendations.map((rec) => _buildHairstyleCard(rec)),
+            ...result.primaryRecommendations.map(
+              (rec) => _buildHairstyleCard(rec),
+            ),
           ],
         ),
       ),
@@ -463,7 +594,10 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
                 width: 70,
                 height: 70,
                 color: AppColors.inputBackground,
-                child: const Icon(Icons.image_not_supported, color: AppColors.textSecondary),
+                child: const Icon(
+                  Icons.image_not_supported,
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
           ),
@@ -479,14 +613,19 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
                       child: Text(rec.style.name, style: AppTextStyles.h4),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.successLight,
                         borderRadius: AppDimensions.borderRadiusSm,
                       ),
                       child: Text(
                         'Độ hợp: ${(rec.matchScore * 100).toStringAsFixed(0)}%',
-                        style: AppTextStyles.badgeText.copyWith(color: AppColors.success),
+                        style: AppTextStyles.badgeText.copyWith(
+                          color: AppColors.success,
+                        ),
                       ),
                     ),
                   ],
@@ -497,7 +636,10 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
                   const SizedBox(height: AppDimensions.xs),
                   Text(
                     'Mẹo: ${rec.stylingTips.first}',
-                    style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary, fontStyle: FontStyle.italic),
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ],
               ],
@@ -515,17 +657,34 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('4. Khởi Tạo Dữ Liệu Demo (Seed Data)', style: AppTextStyles.h4),
+            const Text(
+              '4. Khởi Tạo Dữ Liệu Demo (Seed Data)',
+              style: AppTextStyles.h4,
+            ),
             const SizedBox(height: AppDimensions.xs),
             const Text(
               'Nạp 10 kiểu tóc vào hairstyleCatalog và 5 tiệm thợ vào barberProfiles trong Firestore.',
               style: AppTextStyles.bodySmall,
             ),
             const SizedBox(height: AppDimensions.md),
-            AppButton.secondary(
-              text: 'Nạp Seed Data Ngay',
-              isLoading: _isSeeding,
-              onPressed: _runSeedData,
+            Row(
+              children: [
+                Expanded(
+                  child: AppButton.secondary(
+                    text: 'Nạp Seed Data',
+                    isLoading: _isSeeding,
+                    onPressed: _runSeedData,
+                  ),
+                ),
+                const SizedBox(width: AppDimensions.md),
+                Expanded(
+                  child: AppButton.outline(
+                    text: 'Xoá 5 thợ mẫu',
+                    isLoading: _isSeeding,
+                    onPressed: _runClearSampleBarbers,
+                  ),
+                ),
+              ],
             ),
             if (_seedStatusMessage != null) ...[
               const SizedBox(height: AppDimensions.md),
@@ -536,7 +695,10 @@ class _AISpikeTestScreenState extends State<AISpikeTestScreen> {
                   borderRadius: AppDimensions.borderRadiusSm,
                   border: Border.all(color: AppColors.border),
                 ),
-                child: Text(_seedStatusMessage!, style: AppTextStyles.bodySmall),
+                child: Text(
+                  _seedStatusMessage!,
+                  style: AppTextStyles.bodySmall,
+                ),
               ),
             ],
           ],

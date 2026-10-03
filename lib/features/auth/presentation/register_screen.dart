@@ -1,6 +1,14 @@
+// ============================================================================
+// File: lib/features/auth/presentation/register_screen.dart
+// Mục đích: Màn hình giao diện (Screen) chính của tính năng auth.
+// Kết cấu:
+//  - Sử dụng ConsumerWidget/StatefulWidget, kết nối UI với Provider để hiển thị trạng thái và xử lý sự kiện người dùng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -47,12 +55,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     });
 
     try {
-      await ref.read(authStateProvider.notifier).register(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        displayName: _nameController.text.trim(),
-        role: _selectedRole,
-      );
+      await ref
+          .read(authStateProvider.notifier)
+          .register(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            displayName: _nameController.text.trim(),
+            role: _selectedRole,
+          );
       if (!mounted) return;
       // context.go('/customer/home'); // GoRouter sẽ tự động redirect
     } catch (e) {
@@ -84,19 +94,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         child: Center(
           child: SingleChildScrollView(
             padding: AppDimensions.paddingScreen,
-            child: Form(
-              key: _formKey,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: Form(
+                  key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Tạo Tài Khoản Mới',
-                    style: AppTextStyles.h1,
-                  ),
+                  const Text('Tạo Tài Khoản Mới', style: AppTextStyles.h1),
                   const SizedBox(height: AppDimensions.xs),
                   Text(
                     'Đăng ký để khám phá các kiểu tóc phù hợp nhất với bạn',
-                    style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: AppDimensions.xl),
 
@@ -110,14 +122,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                       child: Text(
                         _errorMessage!,
-                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.error,
+                        ),
                       ),
                     ),
                     const SizedBox(height: AppDimensions.md),
                   ],
 
                   // Chọn vai trò: Khách hàng hoặc Thợ cắt tóc
-                  const Text('Bạn tham gia với vai trò:', style: AppTextStyles.labelMedium),
+                  const Text(
+                    'Bạn tham gia với vai trò:',
+                    style: AppTextStyles.labelMedium,
+                  ),
                   const SizedBox(height: AppDimensions.xs),
                   Row(
                     children: [
@@ -127,7 +144,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           subtitle: 'Tìm thợ & Đặt lịch',
                           icon: Icons.person_outline_rounded,
                           isSelected: _selectedRole == UserRole.customer,
-                          onTap: () => setState(() => _selectedRole = UserRole.customer),
+                          onTap: () =>
+                              setState(() => _selectedRole = UserRole.customer),
                         ),
                       ),
                       const SizedBox(width: AppDimensions.md),
@@ -137,7 +155,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           subtitle: 'Quản lý tiệm & Nhận lịch',
                           icon: Icons.content_cut_rounded,
                           isSelected: _selectedRole == UserRole.barber,
-                          onTap: () => setState(() => _selectedRole = UserRole.barber),
+                          onTap: () =>
+                              setState(() => _selectedRole = UserRole.barber),
                         ),
                       ),
                     ],
@@ -149,7 +168,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     hintText: 'Nhập họ tên đầy đủ',
                     controller: _nameController,
                     validator: (v) => Validators.required(v, 'họ và tên'),
-                    prefixIcon: const Icon(Icons.person_outline, size: 20, color: AppColors.textSecondary),
+                    prefixIcon: const Icon(
+                      Icons.person_outline,
+                      size: 20,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: AppDimensions.md),
 
@@ -159,7 +182,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     validator: Validators.email,
-                    prefixIcon: const Icon(Icons.email_outlined, size: 20, color: AppColors.textSecondary),
+                    prefixIcon: const Icon(
+                      Icons.email_outlined,
+                      size: 20,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: AppDimensions.md),
 
@@ -169,7 +196,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     controller: _passwordController,
                     isPassword: true,
                     validator: Validators.password,
-                    prefixIcon: const Icon(Icons.lock_outline, size: 20, color: AppColors.textSecondary),
+                    prefixIcon: const Icon(
+                      Icons.lock_outline,
+                      size: 20,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: AppDimensions.md),
 
@@ -178,8 +209,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     hintText: 'Nhập lại mật khẩu trên',
                     controller: _confirmPasswordController,
                     isPassword: true,
-                    validator: (v) => Validators.confirmPassword(v, _passwordController.text),
-                    prefixIcon: const Icon(Icons.lock_reset_outlined, size: 20, color: AppColors.textSecondary),
+                    validator: (v) =>
+                        Validators.confirmPassword(v, _passwordController.text),
+                    prefixIcon: const Icon(
+                      Icons.lock_reset_outlined,
+                      size: 20,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: AppDimensions.xl),
 
@@ -215,6 +251,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
         ),
       ),
+    ),
+    ),
     );
   }
 }
@@ -242,7 +280,9 @@ class _RoleCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppDimensions.md),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.accent.withValues(alpha: 0.08) : AppColors.surface,
+          color: isSelected
+              ? AppColors.accent.withValues(alpha: 0.08)
+              : AppColors.surface,
           borderRadius: AppDimensions.borderRadiusMd,
           border: Border.all(
             color: isSelected ? AppColors.accent : AppColors.border,

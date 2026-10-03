@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/core/widgets/empty_state.dart
+// Mục đích: Thành phần giao diện (Widget) dùng chung.
+// Kết cấu:
+//  - Widget tái sử dụng (Reusable Widget) nhận tham số qua constructor và không chứa logic nghiệp vụ phức tạp.
+// ============================================================================
+
 import 'package:flutter/material.dart';
+
 import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import '../constants/app_text_styles.dart';
@@ -47,11 +55,7 @@ class EmptyState extends StatelessWidget {
                   ),
                 ),
             const SizedBox(height: AppDimensions.lg),
-            Text(
-              title,
-              style: AppTextStyles.h3,
-              textAlign: TextAlign.center,
-            ),
+            Text(title, style: AppTextStyles.h3, textAlign: TextAlign.center),
             const SizedBox(height: AppDimensions.xs),
             Text(
               message,

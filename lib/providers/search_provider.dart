@@ -1,6 +1,14 @@
+// ============================================================================
+// File: lib/providers/search_provider.dart
+// Mục đích: Quản lý trạng thái (State Management) cho search.
+// Kết cấu:
+//  - Sử dụng Riverpod (Notifier/StateNotifier/Provider) để cung cấp trạng thái và xử lý logic nghiệp vụ.
+// ============================================================================
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
+
 import '../core/services/location_service.dart';
 import '../core/utils/distance_helper.dart';
 import '../features/search_map/data/barber_repository.dart';
@@ -43,6 +51,7 @@ class SearchMapState {
   final String? locationMessage;
   final String? selectedHairstyleId;
   final String searchQuery;
+  final int? maxPriceFilter;
   final List<BarberProfileModel> allApprovedBarbers;
   final List<BarberWithDistance> displayBarbers;
   final BarberProfileModel? selectedBarber;
@@ -56,6 +65,7 @@ class SearchMapState {
     this.locationMessage,
     this.selectedHairstyleId,
     this.searchQuery = '',
+    this.maxPriceFilter,
     this.allApprovedBarbers = const [],
     this.displayBarbers = const [],
     this.selectedBarber,
@@ -82,6 +92,8 @@ class SearchMapState {
     String? selectedHairstyleId,
     bool clearHairstyleFilter = false,
     String? searchQuery,
+    int? maxPriceFilter,
+    bool clearPriceFilter = false,
     List<BarberProfileModel>? allApprovedBarbers,
     List<BarberWithDistance>? displayBarbers,
     BarberProfileModel? selectedBarber,
@@ -98,6 +110,9 @@ class SearchMapState {
           ? null
           : (selectedHairstyleId ?? this.selectedHairstyleId),
       searchQuery: searchQuery ?? this.searchQuery,
+      maxPriceFilter: clearPriceFilter
+          ? null
+          : (maxPriceFilter ?? this.maxPriceFilter),
       allApprovedBarbers: allApprovedBarbers ?? this.allApprovedBarbers,
       displayBarbers: displayBarbers ?? this.displayBarbers,
       selectedBarber: clearSelectedBarber
@@ -119,12 +134,16 @@ class SearchNotifier extends AsyncNotifier<SearchMapState> {
     // 1. Lấy vị trí người dùng (hoặc fallback mặc định Đà Nẵng)
     final locResult = await locationService.getCurrentPosition();
 
-    // 2. Lấy danh sách thợ approved từ Firestore
-    List<BarberProfileModel> barbers = [];
-    try {
-      barbers = await barberRepo.getApprovedBarbers();
-    } catch (e) {
-      debugPrint('⚠️ [SearchNotifier] Không thể tải thợ: $e');
+    // 2. Lấy danh sách thợ approved từ Firestore (Stream real-time)
+    final barbersAsync = ref.watch(approvedBarbersStreamProvider);
+    List<BarberProfileModel> barbers = barbersAsync.value ?? [];
+
+    if (barbers.isEmpty) {
+      try {
+        barbers = await barberRepo.getApprovedBarbers();
+      } catch (e) {
+        debugPrint('⚠️ [SearchNotifier] Không thể tải thợ: $e');
+      }
     }
 
     final refPoint = locResult.coordinates;
@@ -145,21 +164,27 @@ class SearchNotifier extends AsyncNotifier<SearchMapState> {
     );
   }
 
-  /// Tính toán khoảng cách và sắp xếp danh sách thợ (Task 3.3, 3.4, 3.9)
+  /// Tính toán khoảng cách và sắp xếp danh sách thợ (Task 3.3, 3.4, 3.9, 6.11)
   List<BarberWithDistance> _computeAndSortBarbers({
     required List<BarberProfileModel> barbers,
     required LatLng refLocation,
     required String? hairstyleId,
     required String query,
+    int? maxPrice,
   }) {
     final cleanQuery = query.trim().toLowerCase();
 
-    // 1. Lọc theo từ khoá tìm kiếm (tên thợ hoặc địa chỉ)
+    // 1. Lọc theo từ khoá tìm kiếm và khoảng giá tối đa
     final filtered = barbers.where((b) {
-      if (cleanQuery.isEmpty) return true;
-      final matchName = b.displayName.toLowerCase().contains(cleanQuery);
-      final matchAddress = b.address.toLowerCase().contains(cleanQuery);
-      return matchName || matchAddress;
+      if (cleanQuery.isNotEmpty) {
+        final matchName = b.displayName.toLowerCase().contains(cleanQuery);
+        final matchAddress = b.address.toLowerCase().contains(cleanQuery);
+        if (!matchName && !matchAddress) return false;
+      }
+      if (maxPrice != null && maxPrice > 0) {
+        if (b.priceMin > maxPrice) return false;
+      }
+      return true;
     }).toList();
 
     // 2. Tính khoảng cách Haversine từ toạ độ tham chiếu đến từng thợ
@@ -205,13 +230,37 @@ class SearchNotifier extends AsyncNotifier<SearchMapState> {
         refLocation: currentState.referenceLocation,
         hairstyleId: hairstyleId,
         query: currentState.searchQuery,
+        maxPrice: currentState.maxPriceFilter,
       );
 
-      state = AsyncValue.data(currentState.copyWith(
-        selectedHairstyleId: hairstyleId,
-        clearHairstyleFilter: hairstyleId == null,
-        displayBarbers: processed,
-      ));
+      state = AsyncValue.data(
+        currentState.copyWith(
+          selectedHairstyleId: hairstyleId,
+          clearHairstyleFilter: hairstyleId == null,
+          displayBarbers: processed,
+        ),
+      );
+    });
+  }
+
+  /// Cập nhật bộ lọc giá tối đa (Task 6.11)
+  void setMaxPriceFilter(int? maxPrice) {
+    state.whenData((currentState) {
+      final processed = _computeAndSortBarbers(
+        barbers: currentState.allApprovedBarbers,
+        refLocation: currentState.referenceLocation,
+        hairstyleId: currentState.selectedHairstyleId,
+        query: currentState.searchQuery,
+        maxPrice: maxPrice,
+      );
+
+      state = AsyncValue.data(
+        currentState.copyWith(
+          maxPriceFilter: maxPrice,
+          clearPriceFilter: maxPrice == null,
+          displayBarbers: processed,
+        ),
+      );
     });
   }
 
@@ -223,12 +272,12 @@ class SearchNotifier extends AsyncNotifier<SearchMapState> {
         refLocation: currentState.referenceLocation,
         hairstyleId: currentState.selectedHairstyleId,
         query: query,
+        maxPrice: currentState.maxPriceFilter,
       );
 
-      state = AsyncValue.data(currentState.copyWith(
-        searchQuery: query,
-        displayBarbers: processed,
-      ));
+      state = AsyncValue.data(
+        currentState.copyWith(searchQuery: query, displayBarbers: processed),
+      );
     });
   }
 
@@ -240,12 +289,15 @@ class SearchNotifier extends AsyncNotifier<SearchMapState> {
         refLocation: newLocation,
         hairstyleId: currentState.selectedHairstyleId,
         query: currentState.searchQuery,
+        maxPrice: currentState.maxPriceFilter,
       );
 
-      state = AsyncValue.data(currentState.copyWith(
-        referenceLocation: newLocation,
-        displayBarbers: processed,
-      ));
+      state = AsyncValue.data(
+        currentState.copyWith(
+          referenceLocation: newLocation,
+          displayBarbers: processed,
+        ),
+      );
     });
   }
 
@@ -266,32 +318,36 @@ class SearchNotifier extends AsyncNotifier<SearchMapState> {
       query: currentState.searchQuery,
     );
 
-    state = AsyncValue.data(currentState.copyWith(
-      userGpsLocation: locResult.isFallback ? null : locResult.coordinates,
-      referenceLocation: locResult.coordinates,
-      isGpsFallback: locResult.isFallback,
-      locationMessage: locResult.errorMessage,
-      displayBarbers: processed,
-      isLocating: false,
-    ));
+    state = AsyncValue.data(
+      currentState.copyWith(
+        userGpsLocation: locResult.isFallback ? null : locResult.coordinates,
+        referenceLocation: locResult.coordinates,
+        isGpsFallback: locResult.isFallback,
+        locationMessage: locResult.errorMessage,
+        displayBarbers: processed,
+        isLocating: false,
+      ),
+    );
   }
 
   /// Chọn một thợ trên bản đồ để mở bottom sheet / xem chi tiết
   void selectBarber(BarberProfileModel? barber) {
     state.whenData((currentState) {
-      state = AsyncValue.data(currentState.copyWith(
-        selectedBarber: barber,
-        clearSelectedBarber: barber == null,
-      ));
+      state = AsyncValue.data(
+        currentState.copyWith(
+          selectedBarber: barber,
+          clearSelectedBarber: barber == null,
+        ),
+      );
     });
   }
 
   /// Chuyển đổi giữa chế độ xem Bản đồ (Map) và Danh sách (List) (Task 3.7)
   void toggleViewMode() {
     state.whenData((currentState) {
-      state = AsyncValue.data(currentState.copyWith(
-        isListView: !currentState.isListView,
-      ));
+      state = AsyncValue.data(
+        currentState.copyWith(isListView: !currentState.isListView),
+      );
     });
   }
 
@@ -305,5 +361,5 @@ class SearchNotifier extends AsyncNotifier<SearchMapState> {
 /// Provider chính cho tính năng tìm kiếm và bản đồ thợ (Task 3.4)
 final searchNotifierProvider =
     AsyncNotifierProvider<SearchNotifier, SearchMapState>(() {
-  return SearchNotifier();
-});
+      return SearchNotifier();
+    });

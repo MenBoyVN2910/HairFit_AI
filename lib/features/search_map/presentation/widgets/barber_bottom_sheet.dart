@@ -1,10 +1,18 @@
-import 'package:cached_network_image/cached_network_image.dart';
+// ============================================================================
+// File: lib/features/search_map/presentation/widgets/barber_bottom_sheet.dart
+// Mục đích: Thành phần giao diện (Widget) con thuộc tính năng search_map.
+// Kết cấu:
+//  - Widget nhận dữ liệu và hiển thị UI, đóng gói giao diện cho gọn gàng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/utils/date_formatter.dart';
+import '../../../../core/widgets/app_avatar.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/rating_stars.dart';
 import '../../../../providers/search_provider.dart';
@@ -13,10 +21,7 @@ import '../../../../providers/search_provider.dart';
 class BarberBottomSheet extends StatelessWidget {
   final BarberWithDistance item;
 
-  const BarberBottomSheet({
-    super.key,
-    required this.item,
-  });
+  const BarberBottomSheet({super.key, required this.item});
 
   static Future<void> show(BuildContext context, BarberWithDistance item) {
     return showModalBottomSheet(
@@ -43,13 +48,15 @@ class BarberBottomSheet extends StatelessWidget {
         AppDimensions.lg,
         AppDimensions.md,
         AppDimensions.lg,
-        AppDimensions.xl,
+        AppDimensions.md,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Drag handle
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Drag handle
           Center(
             child: Container(
               width: 44,
@@ -66,28 +73,15 @@ class BarberBottomSheet extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
+              AppAvatar(
+                imageUrl: barber.avatarUrl,
+                fallbackUrl: barber.coverUrl,
+                name: barber.displayName,
+                width: 72,
+                height: 72,
                 borderRadius: AppDimensions.borderRadiusMd,
-                child: Container(
-                  width: 72,
-                  height: 72,
-                  color: AppColors.background,
-                  child: barber.avatarUrl.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: barber.avatarUrl,
-                          fit: BoxFit.cover,
-                          errorWidget: (_, _, _) => const Icon(
-                            Icons.storefront_rounded,
-                            color: AppColors.textSecondary,
-                            size: 36,
-                          ),
-                        )
-                      : const Icon(
-                          Icons.storefront_rounded,
-                          color: AppColors.textSecondary,
-                          size: 36,
-                        ),
-                ),
+                fit: BoxFit.cover,
+                fallbackIcon: Icons.storefront_rounded,
               ),
               const SizedBox(width: AppDimensions.md),
               Expanded(
@@ -169,7 +163,9 @@ class BarberBottomSheet extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.accent.withValues(alpha: 0.1),
                 borderRadius: AppDimensions.borderRadiusSm,
-                border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppColors.accent.withValues(alpha: 0.3),
+                ),
               ),
               child: const Row(
                 children: [
@@ -205,10 +201,7 @@ class BarberBottomSheet extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Expanded(
-                child: Text(
-                  barber.address,
-                  style: AppTextStyles.bodyMedium,
-                ),
+                child: Text(barber.address, style: AppTextStyles.bodyMedium),
               ),
             ],
           ),
@@ -225,10 +218,15 @@ class BarberBottomSheet extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 'Khoảng giá: ',
-                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
               Text(
-                DateFormatter.formatPriceRange(barber.priceMin, barber.priceMax),
+                DateFormatter.formatPriceRange(
+                  barber.priceMin,
+                  barber.priceMax,
+                ),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -257,7 +255,10 @@ class BarberBottomSheet extends StatelessWidget {
                   visualDensity: VisualDensity.compact,
                   label: Text(
                     '${s.name} • ${DateFormatter.formatCurrency(s.price)}',
-                    style: const TextStyle(fontSize: 11, color: AppColors.textPrimary),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                 );
               }).toList(),
@@ -284,13 +285,14 @@ class BarberBottomSheet extends StatelessWidget {
                   text: 'Đặt lịch ngay',
                   onPressed: () {
                     Navigator.of(context).pop();
-                    context.push('/customer/barber/${barber.uid}');
+                    context.push('/customer/booking/${barber.uid}');
                   },
                 ),
               ),
             ],
           ),
         ],
+      ),
       ),
     );
   }

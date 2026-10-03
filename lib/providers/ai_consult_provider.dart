@@ -1,7 +1,15 @@
+// ============================================================================
+// File: lib/providers/ai_consult_provider.dart
+// Mục đích: Quản lý trạng thái (State Management) cho ai_consult.
+// Kết cấu:
+//  - Sử dụng Riverpod (Notifier/StateNotifier/Provider) để cung cấp trạng thái và xử lý logic nghiệp vụ.
+// ============================================================================
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../core/services/seed_data_service.dart';
 import '../features/ai_consult/data/hairstyle_repository.dart';
 import '../features/ai_consult/domain/ai_consult_result.dart';
@@ -53,8 +61,11 @@ class AIConsultState {
     String? imagePath,
     bool clearImage = false,
     String? selectedGender,
+    bool clearGender = false,
     String? selectedLength,
+    bool clearLength = false,
     String? selectedTexture,
+    bool clearTexture = false,
     bool? isAnalyzing,
     AIConsultResult? result,
     bool clearResult = false,
@@ -66,9 +77,15 @@ class AIConsultState {
     return AIConsultState(
       hasConsent: hasConsent ?? this.hasConsent,
       imagePath: clearImage ? null : (imagePath ?? this.imagePath),
-      selectedGender: selectedGender ?? this.selectedGender,
-      selectedLength: selectedLength ?? this.selectedLength,
-      selectedTexture: selectedTexture ?? this.selectedTexture,
+      selectedGender: clearGender
+          ? null
+          : (selectedGender ?? this.selectedGender),
+      selectedLength: clearLength
+          ? null
+          : (selectedLength ?? this.selectedLength),
+      selectedTexture: clearTexture
+          ? null
+          : (selectedTexture ?? this.selectedTexture),
       isAnalyzing: isAnalyzing ?? this.isAnalyzing,
       result: clearResult ? null : (result ?? this.result),
       executionTimeMs: executionTimeMs ?? this.executionTimeMs,
@@ -95,9 +112,9 @@ class AIConsultNotifier extends StateNotifier<AIConsultState> {
     required this.consultantService,
     required this.hairstyleRepository,
     this.prefs,
-  }) : super(AIConsultState(
-          hasConsent: prefs?.getBool(kAiConsentKey) ?? false,
-        )) {
+  }) : super(
+         AIConsultState(hasConsent: prefs?.getBool(kAiConsentKey) ?? false),
+       ) {
     if (prefs == null) {
       _loadConsentFromStorage();
     }
@@ -147,11 +164,22 @@ class AIConsultNotifier extends StateNotifier<AIConsultState> {
     String? gender,
     String? length,
     String? texture,
+    bool resetGender = false,
+    bool resetLength = false,
+    bool resetTexture = false,
   }) {
+    final shouldClearGender =
+        resetGender || gender == null || gender == 'unisex';
+    final shouldClearLength = resetLength || length == null;
+    final shouldClearTexture = resetTexture || texture == null;
+
     state = state.copyWith(
-      selectedGender: gender,
-      selectedLength: length,
-      selectedTexture: texture,
+      selectedGender: shouldClearGender ? null : gender,
+      clearGender: shouldClearGender,
+      selectedLength: shouldClearLength ? null : length,
+      clearLength: shouldClearLength,
+      selectedTexture: shouldClearTexture ? null : texture,
+      clearTexture: shouldClearTexture,
     );
   }
 
@@ -160,7 +188,8 @@ class AIConsultNotifier extends StateNotifier<AIConsultState> {
     List<HairstyleModel>? catalogOverride,
   }) async {
     if (state.imagePath == null || state.imagePath!.isEmpty) {
-      const err = 'Vui lòng chụp ảnh hoặc chọn ảnh chân dung trước khi phân tích';
+      const err =
+          'Vui lòng chụp ảnh hoặc chọn ảnh chân dung trước khi phân tích';
       state = state.copyWith(
         errorMessage: err,
         errorHint: 'Nhấn vào biểu tượng camera hoặc thư viện ảnh để bắt đầu',
@@ -183,7 +212,9 @@ class AIConsultNotifier extends StateNotifier<AIConsultState> {
         try {
           catalog = await hairstyleRepository.getAllHairstyles();
         } catch (e) {
-          debugPrint('[AIConsult] Lỗi lấy Firestore catalog, kích hoạt catalog seed dự phòng: $e');
+          debugPrint(
+            '[AIConsult] Lỗi lấy Firestore catalog, kích hoạt catalog seed dự phòng: $e',
+          );
         }
       }
 
@@ -288,11 +319,10 @@ class AIConsultNotifier extends StateNotifier<AIConsultState> {
         preferredTexture: state.selectedTexture,
       );
 
-      final suggestions = recommendation.primaryRecommendations.take(3).map((rec) {
-        return HairstyleSuggestion(
-          id: rec.style.id,
-          reason: rec.matchReasonVi,
-        );
+      final suggestions = recommendation.primaryRecommendations.take(3).map((
+        rec,
+      ) {
+        return HairstyleSuggestion(id: rec.style.id, reason: rec.matchReasonVi);
       }).toList();
 
       final success = AIConsultResult.success(
@@ -329,10 +359,10 @@ class AIConsultNotifier extends StateNotifier<AIConsultState> {
 /// Provider chính cho toàn bộ tính năng AI Tư Vấn Kiểu Tóc
 final aiConsultProvider =
     StateNotifierProvider<AIConsultNotifier, AIConsultState>((ref) {
-  final consultantService = ref.watch(aiConsultantServiceProvider);
-  final hairstyleRepository = ref.watch(hairstyleRepositoryProvider);
-  return AIConsultNotifier(
-    consultantService: consultantService,
-    hairstyleRepository: hairstyleRepository,
-  );
-});
+      final consultantService = ref.watch(aiConsultantServiceProvider);
+      final hairstyleRepository = ref.watch(hairstyleRepositoryProvider);
+      return AIConsultNotifier(
+        consultantService: consultantService,
+        hairstyleRepository: hairstyleRepository,
+      );
+    });

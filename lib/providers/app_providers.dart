@@ -1,6 +1,14 @@
+// ============================================================================
+// File: lib/providers/app_providers.dart
+// Mục đích: Quản lý trạng thái (State Management) cho app_providers.dart.
+// Kết cấu:
+//  - Sử dụng Riverpod (Notifier/StateNotifier/Provider) để cung cấp trạng thái và xử lý logic nghiệp vụ.
+// ============================================================================
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/user_model.dart';
 
 /// Provider cung cấp FirebaseAuth instance
@@ -30,4 +38,3 @@ final currentUserModelProvider = FutureProvider<UserModel?>((ref) async {
 
   return UserModel.fromFirestore(doc);
 });
-

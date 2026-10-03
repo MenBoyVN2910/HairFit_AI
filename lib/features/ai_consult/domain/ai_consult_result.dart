@@ -1,3 +1,10 @@
+// ============================================================================
+// File: lib/features/ai_consult/domain/ai_consult_result.dart
+// Mục đích: Định nghĩa logic nghiệp vụ cốt lõi (Domain/Entity) cho tính năng ai_consult.
+// Kết cấu:
+//  - Các lớp xử lý logic độc lập, không phụ thuộc vào UI hay Framework (VD: AI Analyzer).
+// ============================================================================
+
 import 'face_shape.dart';
 import 'face_shape_analyzer.dart';
 import 'hairstyle_recommendation_engine.dart';
@@ -7,10 +14,7 @@ class HairstyleSuggestion {
   final String id;
   final String reason;
 
-  const HairstyleSuggestion({
-    required this.id,
-    required this.reason,
-  });
+  const HairstyleSuggestion({required this.id, required this.reason});
 
   factory HairstyleSuggestion.fromJson(Map<String, dynamic> json) {
     return HairstyleSuggestion(
@@ -20,10 +24,7 @@ class HairstyleSuggestion {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'reason': reason,
-    };
+    return {'id': id, 'reason': reason};
   }
 }
 
@@ -43,13 +44,10 @@ sealed class AIConsultResult {
     required String hint,
   }) = AIConsultValidationFailed;
 
-  factory AIConsultResult.fallbackNeeded({
-    FaceShape? faceShape,
-  }) = AIConsultFallbackNeeded;
+  factory AIConsultResult.fallbackNeeded({FaceShape? faceShape}) =
+      AIConsultFallbackNeeded;
 
-  factory AIConsultResult.error({
-    required String message,
-  }) = AIConsultError;
+  factory AIConsultResult.error({required String message}) = AIConsultError;
 }
 
 class AIConsultSuccess extends AIConsultResult {
@@ -70,24 +68,17 @@ class AIConsultValidationFailed extends AIConsultResult {
   final String message;
   final String hint;
 
-  const AIConsultValidationFailed({
-    required this.message,
-    required this.hint,
-  });
+  const AIConsultValidationFailed({required this.message, required this.hint});
 }
 
 class AIConsultFallbackNeeded extends AIConsultResult {
   final FaceShape? faceShape;
 
-  const AIConsultFallbackNeeded({
-    this.faceShape,
-  });
+  const AIConsultFallbackNeeded({this.faceShape});
 }
 
 class AIConsultError extends AIConsultResult {
   final String message;
 
-  const AIConsultError({
-    required this.message,
-  });
+  const AIConsultError({required this.message});
 }

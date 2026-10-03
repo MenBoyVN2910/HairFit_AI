@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/core/widgets/rating_stars.dart
+// Mục đích: Thành phần giao diện (Widget) dùng chung.
+// Kết cấu:
+//  - Widget tái sử dụng (Reusable Widget) nhận tham số qua constructor và không chứa logic nghiệp vụ phức tạp.
+// ============================================================================
+
 import 'package:flutter/material.dart';
+
 import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import '../constants/app_text_styles.dart';
@@ -26,11 +34,7 @@ class RatingStars extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(
-          Icons.star_rounded,
-          size: starSize,
-          color: starColor,
-        ),
+        Icon(Icons.star_rounded, size: starSize, color: starColor),
         const SizedBox(width: AppDimensions.xxs),
         if (showRatingNumber) ...[
           Text(
@@ -45,7 +49,9 @@ class RatingStars extends StatelessWidget {
           const SizedBox(width: AppDimensions.xxs),
           Text(
             '($reviewCount)',
-            style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
         ],
       ],

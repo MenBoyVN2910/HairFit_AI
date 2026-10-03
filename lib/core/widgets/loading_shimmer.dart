@@ -1,5 +1,13 @@
+// ============================================================================
+// File: lib/core/widgets/loading_shimmer.dart
+// Mục đích: Thành phần giao diện (Widget) dùng chung.
+// Kết cấu:
+//  - Widget tái sử dụng (Reusable Widget) nhận tham số qua constructor và không chứa logic nghiệp vụ phức tạp.
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+
 import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 
@@ -18,13 +26,11 @@ class LoadingShimmer extends StatelessWidget {
     this.shape = BoxShape.rectangle,
   });
 
-  const LoadingShimmer.circular({
-    super.key,
-    required double size,
-  })  : width = size,
-        height = size,
-        borderRadius = null,
-        shape = BoxShape.circle;
+  const LoadingShimmer.circular({super.key, required double size})
+    : width = size,
+      height = size,
+      borderRadius = null,
+      shape = BoxShape.circle;
 
   @override
   Widget build(BuildContext context) {
@@ -37,8 +43,8 @@ class LoadingShimmer extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           shape: shape,
-          borderRadius: shape == BoxShape.circle 
-              ? null 
+          borderRadius: shape == BoxShape.circle
+              ? null
               : (borderRadius ?? AppDimensions.borderRadiusSm),
         ),
       ),

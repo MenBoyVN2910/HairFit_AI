@@ -1,9 +1,17 @@
+// ============================================================================
+// File: lib/models/service_model.dart
+// Mục đích: Định nghĩa cấu trúc dữ liệu (service_model).
+// Kết cấu:
+//  - Lớp mô hình (Model) bao gồm các thuộc tính và phương thức chuyển đổi (toMap, fromMap, copyWith).
+// ============================================================================
+
 /// Mô hình dịch vụ của thợ cắt tóc
 class ServiceModel {
   final String id;
   final String name;
   final int price; // Giá tính bằng VNĐ
-  final int durationMinutes; // Thời lượng, phải là bội số của 30 (30, 60, 90, ...)
+  final int
+  durationMinutes; // Thời lượng, phải là bội số của 30 (30, 60, 90, ...)
   final bool active;
 
   const ServiceModel({

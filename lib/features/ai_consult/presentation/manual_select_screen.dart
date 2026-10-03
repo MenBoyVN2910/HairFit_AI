@@ -1,6 +1,14 @@
+// ============================================================================
+// File: lib/features/ai_consult/presentation/manual_select_screen.dart
+// Mục đích: Màn hình giao diện (Screen) chính của tính năng ai_consult.
+// Kết cấu:
+//  - Sử dụng ConsumerWidget/StatefulWidget, kết nối UI với Provider để hiển thị trạng thái và xử lý sự kiện người dùng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -98,7 +106,9 @@ class _ManualSelectScreenState extends ConsumerState<ManualSelectScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: AppColors.accent.withValues(alpha: 0.35),
+                  disabledBackgroundColor: AppColors.accent.withValues(
+                    alpha: 0.35,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: AppDimensions.borderRadiusMd,
                   ),
@@ -117,7 +127,9 @@ class _ManualSelectScreenState extends ConsumerState<ManualSelectScreen> {
                   aiState.isAnalyzing
                       ? 'Đang đối soát quy tắc...'
                       : 'Xem gợi ý kiểu tóc cho ${_selectedShape?.displayNameVi ?? ""}',
-                  style: AppTextStyles.buttonMedium.copyWith(color: Colors.white),
+                  style: AppTextStyles.buttonMedium.copyWith(
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -187,27 +199,42 @@ class _ManualSelectScreenState extends ConsumerState<ManualSelectScreen> {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        shape.displayNameVi,
-                        style: AppTextStyles.h4.copyWith(
-                          color: isSelected ? AppColors.accent : AppColors.primary,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                shape.displayNameVi,
+                                style: AppTextStyles.h4.copyWith(
+                                  color: isSelected
+                                      ? AppColors.accent
+                                      : AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: AppDimensions.xs),
+                            Text(
+                              '(${shape.name.toUpperCase()})',
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(width: AppDimensions.xs),
-                      Text(
-                        '(${shape.name.toUpperCase()})',
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const Spacer(),
                       Icon(
                         isSelected
                             ? Icons.radio_button_checked_rounded
                             : Icons.radio_button_off_rounded,
-                        color: isSelected ? AppColors.accent : AppColors.divider,
+                        color: isSelected
+                            ? AppColors.accent
+                            : AppColors.divider,
                         size: 22,
                       ),
                     ],

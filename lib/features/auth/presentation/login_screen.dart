@@ -1,6 +1,14 @@
+// ============================================================================
+// File: lib/features/auth/presentation/login_screen.dart
+// Mục đích: Màn hình giao diện (Screen) chính của tính năng auth.
+// Kết cấu:
+//  - Sử dụng ConsumerWidget/StatefulWidget, kết nối UI với Provider để hiển thị trạng thái và xử lý sự kiện người dùng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -40,10 +48,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
-      await ref.read(authStateProvider.notifier).login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+      await ref
+          .read(authStateProvider.notifier)
+          .login(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
       if (!mounted) return;
       // context.go('/customer/home'); // GoRouter sẽ tự động redirect khi đăng nhập thành công
     } catch (e) {
@@ -63,16 +73,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: AppDimensions.paddingScreen,
-            child: Form(
-              key: _formKey,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: Form(
+                  key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -100,7 +110,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: AppDimensions.xs),
                   Text(
                     'Đăng nhập để đặt lịch và trải nghiệm tư vấn kiểu tóc AI',
-                    style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: AppDimensions.xxl),
@@ -115,7 +127,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       child: Text(
                         _errorMessage!,
-                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.error,
+                        ),
                       ),
                     ),
                     const SizedBox(height: AppDimensions.md),
@@ -127,7 +141,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     validator: Validators.email,
-                    prefixIcon: const Icon(Icons.email_outlined, size: 20, color: AppColors.textSecondary),
+                    prefixIcon: const Icon(
+                      Icons.email_outlined,
+                      size: 20,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: AppDimensions.lg),
 
@@ -137,7 +155,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     controller: _passwordController,
                     isPassword: true,
                     validator: Validators.password,
-                    prefixIcon: const Icon(Icons.lock_outline, size: 20, color: AppColors.textSecondary),
+                    prefixIcon: const Icon(
+                      Icons.lock_outline,
+                      size: 20,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: AppDimensions.xs),
 
@@ -182,6 +204,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
       ),
+    ),
+    ),
     );
   }
 }

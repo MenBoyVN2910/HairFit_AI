@@ -1,9 +1,17 @@
-import 'package:cached_network_image/cached_network_image.dart';
+// ============================================================================
+// File: lib/features/search_map/presentation/widgets/barber_card.dart
+// Mục đích: Thành phần giao diện (Widget) con thuộc tính năng search_map.
+// Kết cấu:
+//  - Widget nhận dữ liệu và hiển thị UI, đóng gói giao diện cho gọn gàng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/utils/date_formatter.dart';
+import '../../../../core/widgets/app_avatar.dart';
 import '../../../../core/widgets/rating_stars.dart';
 import '../../../../providers/search_provider.dart';
 
@@ -12,11 +20,7 @@ class BarberCard extends StatelessWidget {
   final BarberWithDistance item;
   final VoidCallback? onTap;
 
-  const BarberCard({
-    super.key,
-    required this.item,
-    this.onTap,
-  });
+  const BarberCard({super.key, required this.item, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -50,28 +54,15 @@ class BarberCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Avatar thợ / tiệm
-                  ClipRRect(
+                  AppAvatar(
+                    imageUrl: barber.avatarUrl,
+                    fallbackUrl: barber.coverUrl,
+                    name: barber.displayName,
+                    width: 68,
+                    height: 68,
                     borderRadius: AppDimensions.borderRadiusSm,
-                    child: Container(
-                      width: 68,
-                      height: 68,
-                      color: AppColors.background,
-                      child: barber.avatarUrl.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: barber.avatarUrl,
-                              fit: BoxFit.cover,
-                              errorWidget: (_, _, _) => const Icon(
-                                Icons.storefront_rounded,
-                                color: AppColors.textSecondary,
-                                size: 32,
-                              ),
-                            )
-                          : const Icon(
-                              Icons.storefront_rounded,
-                              color: AppColors.textSecondary,
-                              size: 32,
-                            ),
-                    ),
+                    fit: BoxFit.cover,
+                    fallbackIcon: Icons.storefront_rounded,
                   ),
                   const SizedBox(width: AppDimensions.md),
 
@@ -98,17 +89,24 @@ class BarberCard extends StatelessWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.accent.withValues(alpha: 0.12),
+                                  color: AppColors.accent.withValues(
+                                    alpha: 0.12,
+                                  ),
                                   borderRadius: BorderRadius.circular(4),
                                   border: Border.all(
-                                    color: AppColors.accent.withValues(alpha: 0.4),
+                                    color: AppColors.accent.withValues(
+                                      alpha: 0.4,
+                                    ),
                                   ),
                                 ),
                                 child: const Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Icons.auto_awesome,
-                                        size: 11, color: AppColors.accent),
+                                    Icon(
+                                      Icons.auto_awesome,
+                                      size: 11,
+                                      color: AppColors.accent,
+                                    ),
                                     SizedBox(width: 3),
                                     Text(
                                       'Phù hợp',
@@ -187,32 +185,42 @@ class BarberCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Khoảng cách
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.near_me_outlined,
-                          size: 13,
-                          color: AppColors.primary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Cách bạn ${item.distanceFormatted}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.near_me_outlined,
+                            size: 13,
                             color: AppColors.primary,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              'Cách bạn ${item.distanceFormatted}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.primary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+                  const SizedBox(width: AppDimensions.xs),
 
                   // Khoảng giá
                   Text(

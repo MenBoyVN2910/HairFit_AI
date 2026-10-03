@@ -1,7 +1,15 @@
+// ============================================================================
+// File: lib/core/services/location_service.dart
+// Mục đích: Cung cấp dịch vụ hạ tầng (location).
+// Kết cấu:
+//  - Lớp Service xử lý giao tiếp với các hệ thống bên ngoài hoặc phần cứng (Firebase, Location, API).
+// ============================================================================
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+
 import '../constants/business_constants.dart';
 
 /// Kết quả lấy vị trí người dùng
@@ -96,7 +104,8 @@ class LocationService {
         return LocationResult.fallback(
           permission: permission,
           isServiceEnabled: false,
-          errorMessage: 'Dịch vụ định vị GPS trên máy đang tắt. Sử dụng vị trí trung tâm TP. ${BusinessConstants.defaultCityName}.',
+          errorMessage:
+              'Dịch vụ định vị GPS trên máy đang tắt. Sử dụng vị trí trung tâm TP. ${BusinessConstants.defaultCityName}.',
         );
       }
 
@@ -104,11 +113,14 @@ class LocationService {
       if (permission == LocationPermission.denied) {
         permission = await requestPermission();
         if (permission == LocationPermission.denied) {
-          debugPrint('⚠️ [LocationService] Người dùng từ chối cấp quyền vị trí.');
+          debugPrint(
+            '⚠️ [LocationService] Người dùng từ chối cấp quyền vị trí.',
+          );
           return LocationResult.fallback(
             permission: permission,
             isServiceEnabled: serviceEnabled,
-            errorMessage: 'Bạn đã từ chối cấp quyền vị trí. Đang hiển thị bản đồ tại ${BusinessConstants.defaultCityName}.',
+            errorMessage:
+                'Bạn đã từ chối cấp quyền vị trí. Đang hiển thị bản đồ tại ${BusinessConstants.defaultCityName}.',
           );
         }
       }
@@ -118,7 +130,8 @@ class LocationService {
         return LocationResult.fallback(
           permission: permission,
           isServiceEnabled: serviceEnabled,
-          errorMessage: 'Quyền vị trí bị chặn vĩnh viễn trong Cài đặt máy. Đang hiển thị bản đồ tại ${BusinessConstants.defaultCityName}.',
+          errorMessage:
+              'Quyền vị trí bị chặn vĩnh viễn trong Cài đặt máy. Đang hiển thị bản đồ tại ${BusinessConstants.defaultCityName}.',
         );
       }
 
@@ -128,7 +141,9 @@ class LocationService {
         timeLimit: const Duration(seconds: 8),
       );
 
-      debugPrint('📍 [LocationService] Lấy toạ độ thành công: (${position.latitude}, ${position.longitude})');
+      debugPrint(
+        '📍 [LocationService] Lấy toạ độ thành công: (${position.latitude}, ${position.longitude})',
+      );
       return LocationResult(
         coordinates: LatLng(position.latitude, position.longitude),
         isFallback: false,

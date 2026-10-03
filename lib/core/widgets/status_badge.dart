@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/core/widgets/status_badge.dart
+// Mục đích: Thành phần giao diện (Widget) dùng chung.
+// Kết cấu:
+//  - Widget tái sử dụng (Reusable Widget) nhận tham số qua constructor và không chứa logic nghiệp vụ phức tạp.
+// ============================================================================
+
 import 'package:flutter/material.dart';
+
 import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import '../constants/app_text_styles.dart';
@@ -8,21 +16,13 @@ class StatusBadge extends StatelessWidget {
   final String status;
   final bool isApproval; // true: approvalStatus, false: appointmentStatus
 
-  const StatusBadge({
-    super.key,
-    required this.status,
-    this.isApproval = false,
-  });
+  const StatusBadge({super.key, required this.status, this.isApproval = false});
 
-  const StatusBadge.appointment({
-    super.key,
-    required this.status,
-  }) : isApproval = false;
+  const StatusBadge.appointment({super.key, required this.status})
+    : isApproval = false;
 
-  const StatusBadge.approval({
-    super.key,
-    required this.status,
-  }) : isApproval = true;
+  const StatusBadge.approval({super.key, required this.status})
+    : isApproval = true;
 
   @override
   Widget build(BuildContext context) {

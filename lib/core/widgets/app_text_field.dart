@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/core/widgets/app_text_field.dart
+// Mục đích: Thành phần giao diện (Widget) dùng chung.
+// Kết cấu:
+//  - Widget tái sử dụng (Reusable Widget) nhận tham số qua constructor và không chứa logic nghiệp vụ phức tạp.
+// ============================================================================
+
 import 'package:flutter/material.dart';
+
 import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import '../constants/app_text_styles.dart';
@@ -62,7 +70,9 @@ class _AppTextFieldState extends State<AppTextField> {
     if (widget.isPassword) {
       effectiveSuffixIcon = IconButton(
         icon: Icon(
-          _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+          _obscureText
+              ? Icons.visibility_off_outlined
+              : Icons.visibility_outlined,
           color: AppColors.textSecondary,
           size: 20,
         ),
@@ -79,10 +89,7 @@ class _AppTextFieldState extends State<AppTextField> {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.label != null) ...[
-          Text(
-            widget.label!,
-            style: AppTextStyles.labelMedium,
-          ),
+          Text(widget.label!, style: AppTextStyles.labelMedium),
           const SizedBox(height: AppDimensions.xs),
         ],
         TextFormField(
@@ -103,7 +110,9 @@ class _AppTextFieldState extends State<AppTextField> {
             hintText: widget.hintText,
             prefixIcon: widget.prefixIcon != null
                 ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.md,
+                    ),
                     child: widget.prefixIcon,
                   )
                 : null,

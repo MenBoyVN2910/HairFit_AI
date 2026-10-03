@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/providers/booking_provider.dart
+// Mục đích: Quản lý trạng thái (State Management) cho booking.
+// Kết cấu:
+//  - Sử dụng Riverpod (Notifier/StateNotifier/Provider) để cung cấp trạng thái và xử lý logic nghiệp vụ.
+// ============================================================================
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../core/utils/date_formatter.dart';
 import '../features/booking/data/booking_repository.dart';
 import '../features/booking/data/slot_service.dart';
@@ -62,7 +70,9 @@ class BookingState {
       selectedService: selectedService ?? this.selectedService,
       selectedDate: selectedDate ?? this.selectedDate,
       availableSlots: availableSlots ?? this.availableSlots,
-      selectedSlot: clearSelectedSlot ? null : (selectedSlot ?? this.selectedSlot),
+      selectedSlot: clearSelectedSlot
+          ? null
+          : (selectedSlot ?? this.selectedSlot),
       note: note ?? this.note,
       hairstyleId: hairstyleId ?? this.hairstyleId,
       isLoadingSlots: isLoadingSlots ?? this.isLoadingSlots,
@@ -85,10 +95,8 @@ class BookingNotifier extends StateNotifier<BookingState> {
   final SlotService slotService;
   final BookingRepository bookingRepository;
 
-  BookingNotifier({
-    required this.slotService,
-    required this.bookingRepository,
-  }) : super(BookingState());
+  BookingNotifier({required this.slotService, required this.bookingRepository})
+    : super(BookingState());
 
   /// Khởi tạo trạng thái ban đầu cho màn hình đặt lịch của thợ
   void initialize({
@@ -177,7 +185,9 @@ class BookingNotifier extends StateNotifier<BookingState> {
       // Nếu slot đang chọn vẫn hợp lệ trong danh sách mới thì giữ nguyên, ngược lại xóa
       AvailableSlot? newSelectedSlot;
       if (state.selectedSlot != null) {
-        final found = available.where((s) => s.startTime == state.selectedSlot!.startTime);
+        final found = available.where(
+          (s) => s.startTime == state.selectedSlot!.startTime,
+        );
         if (found.isNotEmpty && found.first.isAvailable) {
           newSelectedSlot = found.first;
         }
@@ -237,10 +247,7 @@ class BookingNotifier extends StateNotifier<BookingState> {
       );
       return true;
     } on BookingException catch (e) {
-      state = state.copyWith(
-        isSubmitting: false,
-        errorMessage: e.message,
-      );
+      state = state.copyWith(isSubmitting: false, errorMessage: e.message);
       // Tải lại danh sách slot vì có thể vừa bị người khác tranh mất
       await loadSlots(barber: barber);
       return false;
@@ -257,10 +264,10 @@ class BookingNotifier extends StateNotifier<BookingState> {
 /// Provider quản lý StateNotifier cho luồng đặt lịch
 final bookingNotifierProvider =
     StateNotifierProvider.autoDispose<BookingNotifier, BookingState>((ref) {
-  final slotService = ref.watch(slotServiceProvider);
-  final bookingRepo = ref.watch(bookingRepositoryProvider);
-  return BookingNotifier(
-    slotService: slotService,
-    bookingRepository: bookingRepo,
-  );
-});
+      final slotService = ref.watch(slotServiceProvider);
+      final bookingRepo = ref.watch(bookingRepositoryProvider);
+      return BookingNotifier(
+        slotService: slotService,
+        bookingRepository: bookingRepo,
+      );
+    });

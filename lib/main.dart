@@ -1,7 +1,16 @@
+// ============================================================================
+// File: lib/main.dart
+// Mục đích: Điểm khởi chạy (Entrypoint) chính của ứng dụng HairFit AI.
+// Kết cấu:
+//  - Khởi tạo môi trường (Firebase, .env), cấu hình ProviderScope và khởi chạy MaterialApp.
+// ============================================================================
+
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'core/services/firebase_service.dart';
 import 'core/services/tile_server_config.dart';
 import 'core/theme/app_theme.dart';
@@ -25,11 +34,7 @@ Future<void> main() async {
   unawaited(TileServerConfig.probe());
 
   // 4. Khởi chạy ứng dụng bọc trong ProviderScope của Riverpod (Task 1.14)
-  runApp(
-    const ProviderScope(
-      child: HairFitApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: HairFitApp()));
 }
 
 /// Widget gốc của ứng dụng HairFit AI
@@ -44,6 +49,7 @@ class HairFitApp extends ConsumerWidget {
       title: 'HairFit AI',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      themeMode: ThemeMode.light,
       routerConfig: router,
     );
   }

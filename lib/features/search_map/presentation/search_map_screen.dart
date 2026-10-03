@@ -1,27 +1,36 @@
+// ============================================================================
+// File: lib/features/search_map/presentation/search_map_screen.dart
+// Mục đích: Màn hình giao diện (Screen) chính của tính năng search_map.
+// Kết cấu:
+//  - Sử dụng ConsumerWidget/StatefulWidget, kết nối UI với Provider để hiển thị trạng thái và xử lý sự kiện người dùng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+
 import '../../../../core/services/tile_server_config.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
+import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/widgets/error_retry.dart';
 import '../../ai_consult/data/hairstyle_repository.dart';
 import '../../../../models/hairstyle_model.dart';
 import '../../../../providers/search_provider.dart';
 import 'widgets/barber_bottom_sheet.dart';
 import 'widgets/barber_list_view.dart';
+import 'widgets/hairstyle_picker_bottom_sheet.dart';
 import 'widgets/map_marker.dart';
 
 /// Màn hình Bản đồ & Tìm kiếm thợ cắt tóc (Task 3.5, 3.9, 3.11)
 class SearchMapScreen extends ConsumerStatefulWidget {
   final String? initialHairstyleId;
 
-  const SearchMapScreen({
-    super.key,
-    this.initialHairstyleId,
-  });
+  const SearchMapScreen({super.key, this.initialHairstyleId});
 
   @override
   ConsumerState<SearchMapScreen> createState() => _SearchMapScreenState();
@@ -73,6 +82,200 @@ class _SearchMapScreenState extends ConsumerState<SearchMapScreen> {
     }
   }
 
+  void _showPriceFilterSheet(SearchMapState state) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppDimensions.radiusLg),
+        ),
+      ),
+      builder: (ctx) {
+        final currentMax = state.maxPriceFilter;
+        return Padding(
+          padding: const EdgeInsets.all(AppDimensions.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Lọc theo giá dịch vụ', style: AppTextStyles.h4),
+                  if (currentMax != null)
+                    TextButton(
+                      onPressed: () {
+                        ref
+                            .read(searchNotifierProvider.notifier)
+                            .setMaxPriceFilter(null);
+                        Navigator.pop(ctx);
+                      },
+                      child: const Text(
+                        'Đặt lại',
+                        style: TextStyle(color: AppColors.accent),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppDimensions.sm),
+              const Text(
+                'Chọn mức giá khởi điểm tối đa:',
+                style: AppTextStyles.bodyMedium,
+              ),
+              const SizedBox(height: AppDimensions.md),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildPriceChip(
+                    ctx,
+                    null,
+                    'Tất cả mức giá',
+                    currentMax == null,
+                  ),
+                  _buildPriceChip(
+                    ctx,
+                    80000,
+                    'Dưới 80.000đ',
+                    currentMax == 80000,
+                  ),
+                  _buildPriceChip(
+                    ctx,
+                    100000,
+                    'Dưới 100.000đ',
+                    currentMax == 100000,
+                  ),
+                  _buildPriceChip(
+                    ctx,
+                    150000,
+                    'Dưới 150.000đ',
+                    currentMax == 150000,
+                  ),
+                  _buildPriceChip(
+                    ctx,
+                    200000,
+                    'Dưới 200.000đ',
+                    currentMax == 200000,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppDimensions.lg),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPriceChip(
+    BuildContext ctx,
+    int? price,
+    String label,
+    bool isSelected,
+  ) {
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      selectedColor: AppColors.accent,
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : AppColors.textPrimary,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      ),
+      onSelected: (_) {
+        ref.read(searchNotifierProvider.notifier).setMaxPriceFilter(price);
+        Navigator.pop(ctx);
+      },
+    );
+  }
+
+  void _showMapStyleSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppDimensions.radiusLg),
+        ),
+      ),
+      builder: (ctx) {
+        return ValueListenableBuilder<TileServerInfo>(
+          valueListenable: TileServerConfig.serverNotifier,
+          builder: (context, current, _) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.lg,
+                vertical: AppDimensions.lg,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Chọn kiểu bản đồ', style: AppTextStyles.h4),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppDimensions.sm),
+                  ...TileServerConfig.servers.map((server) {
+                    final isSelected = server.name == current.name;
+                    IconData iconData = Icons.map_outlined;
+                    if (server.name.contains('Vệ tinh')) {
+                      iconData = Icons.satellite_alt_outlined;
+                    } else if (server.name.contains('OpenStreetMap')) {
+                      iconData = Icons.public_outlined;
+                    }
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.primary.withValues(alpha: 0.1)
+                              : Colors.grey.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          iconData,
+                          color: isSelected
+                              ? AppColors.primary
+                              : Colors.grey[700],
+                        ),
+                      ),
+                      title: Text(
+                        server.name,
+                        style: TextStyle(
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: isSelected ? AppColors.primary : null,
+                        ),
+                      ),
+                      trailing: isSelected
+                          ? const Icon(
+                              Icons.check_circle,
+                              color: AppColors.accent,
+                            )
+                          : null,
+                      onTap: () {
+                        TileServerConfig.setServer(server);
+                        Navigator.pop(ctx);
+                      },
+                    );
+                  }),
+                  const SizedBox(height: AppDimensions.sm),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final searchAsync = ref.watch(searchNotifierProvider);
@@ -102,7 +305,8 @@ class _SearchMapScreenState extends ConsumerState<SearchMapScreen> {
             body: Center(
               child: ErrorRetry(
                 errorMessage: 'Không thể tải dữ liệu thợ: $error',
-                onRetry: () => ref.read(searchNotifierProvider.notifier).reload(),
+                onRetry: () =>
+                    ref.read(searchNotifierProvider.notifier).reload(),
               ),
             ),
           ),
@@ -127,11 +331,15 @@ class _SearchMapScreenState extends ConsumerState<SearchMapScreen> {
                       ? BarberListView(
                           searchState: state,
                           onRefresh: () async {
-                            await ref.read(searchNotifierProvider.notifier).reload();
+                            await ref
+                                .read(searchNotifierProvider.notifier)
+                                .reload();
                           },
                           onClearFilter: () {
                             _searchController.clear();
-                            ref.read(searchNotifierProvider.notifier).setSearchQuery('');
+                            ref
+                                .read(searchNotifierProvider.notifier)
+                                .setSearchQuery('');
                             ref
                                 .read(searchNotifierProvider.notifier)
                                 .setHairstyleFilter(null);
@@ -167,7 +375,10 @@ class _SearchMapScreenState extends ConsumerState<SearchMapScreen> {
             )
           else
             const Padding(
-              padding: EdgeInsets.only(left: AppDimensions.xs, right: AppDimensions.xs),
+              padding: EdgeInsets.only(
+                left: AppDimensions.xs,
+                right: AppDimensions.xs,
+              ),
               child: Icon(Icons.location_on, color: AppColors.accent, size: 24),
             ),
 
@@ -218,7 +429,9 @@ class _SearchMapScreenState extends ConsumerState<SearchMapScreen> {
 
           // Nút toggle Map / List view
           IconButton(
-            tooltip: state.isListView ? 'Xem trên Bản đồ' : 'Xem dạng Danh sách',
+            tooltip: state.isListView
+                ? 'Xem trên Bản đồ'
+                : 'Xem dạng Danh sách',
             style: IconButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -234,23 +447,168 @@ class _SearchMapScreenState extends ConsumerState<SearchMapScreen> {
               ref.read(searchNotifierProvider.notifier).toggleViewMode();
             },
           ),
+          const SizedBox(width: AppDimensions.xs),
+
+          // Nút lọc giá (Task 6.11)
+          IconButton(
+            tooltip: 'Lọc theo giá',
+            style: IconButton.styleFrom(
+              backgroundColor: state.maxPriceFilter != null
+                  ? AppColors.accent
+                  : AppColors.background,
+              foregroundColor: state.maxPriceFilter != null
+                  ? Colors.white
+                  : AppColors.textPrimary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: BorderSide(
+                  color: state.maxPriceFilter != null
+                      ? AppColors.accent
+                      : AppColors.border,
+                ),
+              ),
+            ),
+            icon: const Icon(Icons.tune_rounded, size: 20),
+            onPressed: () => _showPriceFilterSheet(state),
+          ),
         ],
       ),
     );
   }
 
-  /// Dải chip lọc kiểu tóc ngang
+  /// Dải chọn và lọc kiểu tóc hiện đại hỗ trợ danh mục lớn (100+ kiểu tóc)
   Widget _buildHairstyleChips(
     SearchMapState state,
     AsyncValue<List<HairstyleModel>> hairstylesAsync,
   ) {
+    final allHairstyles = hairstylesAsync.value ?? [];
+    HairstyleModel? selectedStyle;
+    if (state.selectedHairstyleId != null && allHairstyles.isNotEmpty) {
+      final matches = allHairstyles.where(
+        (s) => s.id == state.selectedHairstyleId,
+      );
+      if (matches.isNotEmpty) {
+        selectedStyle = matches.first;
+      }
+    }
+
     return Container(
       color: AppColors.surface,
-      height: 44,
+      height: 46,
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.sm),
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
+          // Nút mở modal Danh mục kiểu tóc lớn (100+ kiểu tóc)
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ActionChip(
+              avatar: const Icon(
+                Icons.grid_view_rounded,
+                size: 16,
+                color: AppColors.accent,
+              ),
+              label: Text(
+                allHairstyles.isNotEmpty
+                    ? 'Bộ sưu tập (${allHairstyles.length} kiểu)'
+                    : 'Bộ sưu tập kiểu tóc',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.accent,
+                ),
+              ),
+              backgroundColor: AppColors.accent.withValues(alpha: 0.1),
+              side: const BorderSide(color: AppColors.accent, width: 1.2),
+              visualDensity: VisualDensity.compact,
+              onPressed: () {
+                if (allHairstyles.isNotEmpty) {
+                  HairstylePickerBottomSheet.show(
+                    context: context,
+                    hairstyles: allHairstyles,
+                    selectedHairstyleId: state.selectedHairstyleId,
+                    onSelectHairstyle: (styleId) {
+                      ref
+                          .read(searchNotifierProvider.notifier)
+                          .setHairstyleFilter(styleId);
+                    },
+                  );
+                }
+              },
+            ),
+          ),
+
+          // Chip lọc giá đang kích hoạt (nếu có)
+          if (state.maxPriceFilter != null) ...[
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: InputChip(
+                label: Text('≤ ${state.maxPriceFilter! ~/ 1000}k'),
+                labelStyle: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+                backgroundColor: AppColors.accent,
+                deleteIcon: const Icon(
+                  Icons.close,
+                  size: 14,
+                  color: Colors.white,
+                ),
+                onDeleted: () {
+                  ref
+                      .read(searchNotifierProvider.notifier)
+                      .setMaxPriceFilter(null);
+                },
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
+          ],
+
+          // Nếu đang có một kiểu tóc được chọn: Hiển thị InputChip nổi bật có nút X xóa và đổi
+          if (selectedStyle != null) ...[
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: InputChip(
+                avatar: const Icon(
+                  Icons.auto_awesome,
+                  size: 14,
+                  color: Colors.white,
+                ),
+                label: Text(selectedStyle.name),
+                labelStyle: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                backgroundColor: AppColors.accent,
+                deleteIcon: const Icon(
+                  Icons.close,
+                  size: 14,
+                  color: Colors.white,
+                ),
+                onDeleted: () {
+                  ref
+                      .read(searchNotifierProvider.notifier)
+                      .setHairstyleFilter(null);
+                },
+                onPressed: () {
+                  HairstylePickerBottomSheet.show(
+                    context: context,
+                    hairstyles: allHairstyles,
+                    selectedHairstyleId: state.selectedHairstyleId,
+                    onSelectHairstyle: (styleId) {
+                      ref
+                          .read(searchNotifierProvider.notifier)
+                          .setHairstyleFilter(styleId);
+                    },
+                  );
+                },
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
+          ],
+
           // Chip "Tất cả kiểu tóc"
           Padding(
             padding: const EdgeInsets.only(right: 6),
@@ -284,55 +642,59 @@ class _SearchMapScreenState extends ConsumerState<SearchMapScreen> {
             ),
           ),
 
-          // Danh sách các kiểu tóc từ catalog
-          ...hairstylesAsync.when(
-            data: (hairstyles) {
-              return hairstyles.map((style) {
-                final isSelected = state.selectedHairstyleId == style.id;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: ChoiceChip(
-                    avatar: isSelected
-                        ? const Icon(Icons.auto_awesome,
-                            size: 13, color: Colors.white)
-                        : null,
-                    label: Text(style.name),
-                    selected: isSelected,
-                    onSelected: (selected) {
+          // Hiển thị một số kiểu tóc để chọn nhanh
+          ...allHairstyles.take(6).map((style) {
+            final isSelected = state.selectedHairstyleId == style.id;
+            if (isSelected) return const SizedBox.shrink();
+
+            return Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: ChoiceChip(
+                label: Text(style.name),
+                selected: false,
+                onSelected: (selected) {
+                  ref
+                      .read(searchNotifierProvider.notifier)
+                      .setHairstyleFilter(selected ? style.id : null);
+                },
+                labelStyle: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textPrimary,
+                ),
+                backgroundColor: AppColors.background,
+                side: const BorderSide(color: AppColors.border),
+                visualDensity: VisualDensity.compact,
+              ),
+            );
+          }),
+
+          if (allHairstyles.length > 6)
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: ActionChip(
+                label: Text('+${allHairstyles.length - 6} kiểu khác...'),
+                labelStyle: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+                backgroundColor: AppColors.background,
+                side: const BorderSide(color: AppColors.border),
+                visualDensity: VisualDensity.compact,
+                onPressed: () {
+                  HairstylePickerBottomSheet.show(
+                    context: context,
+                    hairstyles: allHairstyles,
+                    selectedHairstyleId: state.selectedHairstyleId,
+                    onSelectHairstyle: (styleId) {
                       ref
                           .read(searchNotifierProvider.notifier)
-                          .setHairstyleFilter(selected ? style.id : null);
+                          .setHairstyleFilter(styleId);
                     },
-                    selectedColor: AppColors.accent,
-                    labelStyle: TextStyle(
-                      fontSize: 12,
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
-                      color: isSelected ? Colors.white : AppColors.textPrimary,
-                    ),
-                    backgroundColor: AppColors.background,
-                    side: BorderSide(
-                      color: isSelected ? AppColors.accent : AppColors.border,
-                    ),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                );
-              }).toList();
-            },
-            loading: () => [
-              const SizedBox(
-                width: 100,
-                child: Center(
-                  child: SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
+                  );
+                },
               ),
-            ],
-            error: (_, _) => const [],
-          ),
+            ),
         ],
       ),
     );
@@ -390,6 +752,7 @@ class _SearchMapScreenState extends ConsumerState<SearchMapScreen> {
     // 2. Markers các thợ cắt tóc đã duyệt
     for (final item in state.displayBarbers) {
       final loc = item.barber.location;
+      if (loc.latitude == 0.0 && loc.longitude == 0.0) continue;
       markers.add(
         Marker(
           point: LatLng(loc.latitude, loc.longitude),
@@ -423,9 +786,29 @@ class _SearchMapScreenState extends ConsumerState<SearchMapScreen> {
             },
           ),
           children: [
-            TileServerConfig.buildTileLayer(),
+            ValueListenableBuilder<TileServerInfo>(
+              valueListenable: TileServerConfig.serverNotifier,
+              builder: (context, currentServer, _) {
+                return TileServerConfig.buildTileLayer(server: currentServer);
+              },
+            ),
             MarkerLayer(markers: markers),
           ],
+        ),
+
+        // Nút đổi giao diện bản đồ (Dịu mắt / Vệ tinh / OSM)
+        Positioned(
+          right: AppDimensions.md,
+          bottom: AppDimensions.xl + 54,
+          child: FloatingActionButton.small(
+            heroTag: 'fab_map_style',
+            backgroundColor: AppColors.surface,
+            foregroundColor: AppColors.primary,
+            elevation: 3,
+            tooltip: 'Đổi kiểu bản đồ',
+            onPressed: _showMapStyleSheet,
+            child: const Icon(Icons.layers_outlined),
+          ),
         ),
 
         // Nút định vị "Vị trí của tôi" (GPS)

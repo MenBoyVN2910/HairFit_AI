@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/core/widgets/app_button.dart
+// Mục đích: Thành phần giao diện (Widget) dùng chung.
+// Kết cấu:
+//  - Widget tái sử dụng (Reusable Widget) nhận tham số qua constructor và không chứa logic nghiệp vụ phức tạp.
+// ============================================================================
+
 import 'package:flutter/material.dart';
+
 import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import '../constants/app_text_styles.dart';
@@ -72,7 +80,9 @@ class AppButton extends StatelessWidget {
 
     Widget childContent;
     if (isLoading) {
-      final spinnerColor = (variant == AppButtonVariant.outline || variant == AppButtonVariant.text)
+      final spinnerColor =
+          (variant == AppButtonVariant.outline ||
+              variant == AppButtonVariant.text)
           ? (customTextColor ?? AppColors.primary)
           : Colors.white;
 
@@ -125,7 +135,9 @@ class AppButton extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: customBackgroundColor ?? AppColors.accent,
             foregroundColor: customTextColor ?? Colors.white,
-            disabledBackgroundColor: AppColors.textSecondary.withValues(alpha: 0.3),
+            disabledBackgroundColor: AppColors.textSecondary.withValues(
+              alpha: 0.3,
+            ),
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: AppDimensions.borderRadiusMd,
@@ -140,7 +152,9 @@ class AppButton extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: customBackgroundColor ?? AppColors.primary,
             foregroundColor: customTextColor ?? Colors.white,
-            disabledBackgroundColor: AppColors.textSecondary.withValues(alpha: 0.3),
+            disabledBackgroundColor: AppColors.textSecondary.withValues(
+              alpha: 0.3,
+            ),
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: AppDimensions.borderRadiusMd,
@@ -156,8 +170,8 @@ class AppButton extends StatelessWidget {
             backgroundColor: customBackgroundColor ?? Colors.transparent,
             foregroundColor: customTextColor ?? AppColors.primary,
             side: BorderSide(
-              color: handler == null 
-                  ? AppColors.border 
+              color: handler == null
+                  ? AppColors.border
                   : (customTextColor ?? AppColors.primary),
               width: 1.5,
             ),

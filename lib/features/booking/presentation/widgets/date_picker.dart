@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/features/booking/presentation/widgets/date_picker.dart
+// Mục đích: Thành phần giao diện (Widget) con thuộc tính năng booking.
+// Kết cấu:
+//  - Widget nhận dữ liệu và hiển thị UI, đóng gói giao diện cho gọn gàng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_text_styles.dart';
@@ -45,7 +53,9 @@ class BookingDatePicker extends StatelessWidget {
     final dateStr = DateFormatter.toIsoDateString(date);
 
     // Kiểm tra ngày nghỉ ngoại lệ
-    final hasException = barber.exceptions.any((e) => e.date == dateStr && e.closed);
+    final hasException = barber.exceptions.any(
+      (e) => e.date == dateStr && e.closed,
+    );
     if (hasException) return true;
 
     // Kiểm tra ngày nghỉ định kỳ trong tuần
@@ -89,11 +99,13 @@ class BookingDatePicker extends StatelessWidget {
                 const SizedBox(width: AppDimensions.sm),
             itemBuilder: (context, index) {
               final date = dates[index];
-              final isSelected = selectedDate.year == date.year &&
+              final isSelected =
+                  selectedDate.year == date.year &&
                   selectedDate.month == date.month &&
                   selectedDate.day == date.day;
               final isClosed = _isDayClosed(date);
-              final isToday = date.year == today.year &&
+              final isToday =
+                  date.year == today.year &&
                   date.month == today.month &&
                   date.day == today.day;
 
@@ -111,15 +123,15 @@ class BookingDatePicker extends StatelessWidget {
                     color: isSelected
                         ? AppColors.primary
                         : (isClosed
-                            ? AppColors.background.withValues(alpha: 0.6)
-                            : AppColors.surface),
+                              ? AppColors.background.withValues(alpha: 0.6)
+                              : AppColors.surface),
                     borderRadius: AppDimensions.borderRadiusMd,
                     border: Border.all(
                       color: isSelected
                           ? AppColors.primary
                           : (isClosed
-                              ? AppColors.divider.withValues(alpha: 0.5)
-                              : AppColors.divider),
+                                ? AppColors.divider.withValues(alpha: 0.5)
+                                : AppColors.divider),
                       width: isSelected ? 1.5 : 1.0,
                     ),
                   ),
@@ -136,8 +148,10 @@ class BookingDatePicker extends StatelessWidget {
                           color: isSelected
                               ? (isToday ? AppColors.accent : Colors.white70)
                               : (isClosed
-                                  ? AppColors.textSecondary.withValues(alpha: 0.5)
-                                  : AppColors.textSecondary),
+                                    ? AppColors.textSecondary.withValues(
+                                        alpha: 0.5,
+                                      )
+                                    : AppColors.textSecondary),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -149,8 +163,10 @@ class BookingDatePicker extends StatelessWidget {
                           color: isSelected
                               ? Colors.white
                               : (isClosed
-                                  ? AppColors.textSecondary.withValues(alpha: 0.4)
-                                  : AppColors.textPrimary),
+                                    ? AppColors.textSecondary.withValues(
+                                        alpha: 0.4,
+                                      )
+                                    : AppColors.textPrimary),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -161,8 +177,8 @@ class BookingDatePicker extends StatelessWidget {
                           color: isSelected
                               ? Colors.white70
                               : (isClosed
-                                  ? AppColors.error.withValues(alpha: 0.7)
-                                  : AppColors.textSecondary),
+                                    ? AppColors.error.withValues(alpha: 0.7)
+                                    : AppColors.textSecondary),
                         ),
                       ),
                     ],

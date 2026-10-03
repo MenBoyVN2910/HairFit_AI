@@ -18,6 +18,8 @@ class AppointmentCard extends StatelessWidget {
   final VoidCallback? onConfirm;
   final VoidCallback? onReject;
   final VoidCallback? onComplete;
+  final VoidCallback? onRate;
+  final VoidCallback? onChat;
 
   const AppointmentCard({
     super.key,
@@ -27,6 +29,8 @@ class AppointmentCard extends StatelessWidget {
     this.onConfirm,
     this.onReject,
     this.onComplete,
+    this.onRate,
+    this.onChat,
   });
 
   @override
@@ -66,22 +70,28 @@ class AppointmentCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.access_time_rounded,
-                      size: 16,
-                      color: AppColors.accent,
-                    ),
-                    const SizedBox(width: AppDimensions.xs),
-                    Text(
-                      '${appointment.startTime} - ${appointment.endTime}, ${DateFormatter.formatShortDate(appointment.startTimestamp)}',
-                      style: AppTextStyles.labelMedium.copyWith(
-                        fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.access_time_rounded,
+                        size: 16,
+                        color: AppColors.accent,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: AppDimensions.xs),
+                      Expanded(
+                        child: Text(
+                          '${appointment.startTime} - ${appointment.endTime}, ${DateFormatter.formatShortDate(appointment.startTimestamp)}',
+                          style: AppTextStyles.labelMedium.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: AppDimensions.xs),
                 StatusBadge.appointment(status: appointment.status.toStatusString()),
               ],
             ),
@@ -117,20 +127,21 @@ class AppointmentCard extends StatelessWidget {
                         children: [
                           Text(
                             isBarberView
-                                ? 'Khách hàng: ${appointment.customerName}'
-                                : appointment.barberName,
+                                ? 'Khách hàng: ${appointment.customerName.isEmpty ? 'Khách hàng' : appointment.customerName}'
+                                : (appointment.barberName.isEmpty ? 'Thợ cắt tóc' : appointment.barberName),
                             style: AppTextStyles.h4,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Dịch vụ: ${appointment.serviceName} (${appointment.durationMinutes} phút)',
+                            'Dịch vụ: ${appointment.serviceName.isEmpty ? 'Dịch vụ cắt tóc' : appointment.serviceName} (${appointment.durationMinutes} phút)',
                             style: AppTextStyles.bodySmall,
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: AppDimensions.xs),
                     Text(
                       DateFormatter.formatCurrency(appointment.price),
                       style: AppTextStyles.h4.copyWith(color: AppColors.accent),
@@ -188,8 +199,31 @@ class AppointmentCard extends StatelessWidget {
         final canCancel = appointment.canCustomerCancel();
         return Align(
           alignment: Alignment.centerRight,
-          child: canCancel
-              ? OutlinedButton.icon(
+          child: Wrap(
+            alignment: WrapAlignment.end,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: AppDimensions.sm,
+            runSpacing: AppDimensions.xs,
+            children: [
+              if (onChat != null)
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.md,
+                      vertical: AppDimensions.xs,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: AppDimensions.borderRadiusSm,
+                    ),
+                  ),
+                  icon: const Icon(Icons.chat_bubble_outline_rounded, size: 15),
+                  label: const Text('Nhắn tin', style: TextStyle(fontSize: 13)),
+                  onPressed: onChat,
+                ),
+              if (canCancel)
+                OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.error,
                     side: const BorderSide(color: AppColors.error),
@@ -205,7 +239,8 @@ class AppointmentCard extends StatelessWidget {
                   label: const Text('Hủy lịch hẹn', style: TextStyle(fontSize: 13)),
                   onPressed: onCancel,
                 )
-              : const Text(
+              else
+                const Text(
                   'Không thể hủy (quá sát giờ hẹn < 30 phút)',
                   style: TextStyle(
                     fontSize: 11,
@@ -213,58 +248,195 @@ class AppointmentCard extends StatelessWidget {
                     fontStyle: FontStyle.italic,
                   ),
                 ),
+            ],
+          ),
+        );
+      } else if (appointment.isCompleted) {
+        return Align(
+          alignment: Alignment.centerRight,
+          child: Wrap(
+            alignment: WrapAlignment.end,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: AppDimensions.sm,
+            runSpacing: AppDimensions.xs,
+            children: [
+              if (onChat != null)
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.md,
+                      vertical: AppDimensions.xs,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: AppDimensions.borderRadiusSm,
+                    ),
+                  ),
+                  icon: const Icon(Icons.chat_bubble_outline_rounded, size: 15),
+                  label: const Text('Nhắn tin', style: TextStyle(fontSize: 13)),
+                  onPressed: onChat,
+                ),
+              if (appointment.rating == null && onRate != null)
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.accent,
+                    side: const BorderSide(color: AppColors.accent),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.md,
+                      vertical: AppDimensions.xs,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: AppDimensions.borderRadiusSm,
+                    ),
+                  ),
+                  icon: const Icon(Icons.star_outline_rounded, size: 16),
+                  label: const Text('Đánh giá', style: TextStyle(fontSize: 13)),
+                  onPressed: onRate,
+                ),
+            ],
+          ),
         );
       }
-      return const SizedBox.shrink();
+      return onChat != null
+          ? Align(
+              alignment: Alignment.centerRight,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.md,
+                    vertical: AppDimensions.xs,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: AppDimensions.borderRadiusSm,
+                  ),
+                ),
+                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 15),
+                label: const Text('Nhắn tin', style: TextStyle(fontSize: 13)),
+                onPressed: onChat,
+              ),
+            )
+          : const SizedBox.shrink();
     }
 
     // Giao diện Thợ cắt tóc
     if (appointment.isPending) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.error,
-              side: const BorderSide(color: AppColors.error),
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.md,
-                vertical: AppDimensions.xs,
+      return Align(
+        alignment: Alignment.centerRight,
+        child: Wrap(
+          alignment: WrapAlignment.end,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: AppDimensions.sm,
+          runSpacing: AppDimensions.xs,
+          children: [
+            if (onChat != null)
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.md,
+                    vertical: AppDimensions.xs,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: AppDimensions.borderRadiusSm,
+                  ),
+                ),
+                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 15),
+                label: const Text('Nhắn tin', style: TextStyle(fontSize: 13)),
+                onPressed: onChat,
               ),
-              shape: RoundedRectangleBorder(
-                borderRadius: AppDimensions.borderRadiusSm,
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.error,
+                side: const BorderSide(color: AppColors.error),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.md,
+                  vertical: AppDimensions.xs,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: AppDimensions.borderRadiusSm,
+                ),
               ),
+              icon: const Icon(Icons.close_rounded, size: 16),
+              label: const Text('Từ chối', style: TextStyle(fontSize: 13)),
+              onPressed: onReject,
             ),
-            icon: const Icon(Icons.close_rounded, size: 16),
-            label: const Text('Từ chối', style: TextStyle(fontSize: 13)),
-            onPressed: onReject,
-          ),
-          const SizedBox(width: AppDimensions.sm),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.md,
-                vertical: AppDimensions.xs,
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.success,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.md,
+                  vertical: AppDimensions.xs,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: AppDimensions.borderRadiusSm,
+                ),
               ),
-              shape: RoundedRectangleBorder(
-                borderRadius: AppDimensions.borderRadiusSm,
-              ),
+              icon: const Icon(Icons.check_rounded, size: 16),
+              label: const Text('Tiếp nhận', style: TextStyle(fontSize: 13)),
+              onPressed: onConfirm,
             ),
-            icon: const Icon(Icons.check_rounded, size: 16),
-            label: const Text('Tiếp nhận', style: TextStyle(fontSize: 13)),
-            onPressed: onConfirm,
-          ),
-        ],
+          ],
+        ),
       );
     } else if (appointment.isConfirmed) {
       return Align(
         alignment: Alignment.centerRight,
-        child: ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
+        child: Wrap(
+          alignment: WrapAlignment.end,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: AppDimensions.sm,
+          runSpacing: AppDimensions.xs,
+          children: [
+            if (onChat != null)
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.md,
+                    vertical: AppDimensions.xs,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: AppDimensions.borderRadiusSm,
+                  ),
+                ),
+                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 15),
+                label: const Text('Nhắn tin', style: TextStyle(fontSize: 13)),
+                onPressed: onChat,
+              ),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.md,
+                  vertical: AppDimensions.xs,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: AppDimensions.borderRadiusSm,
+                ),
+              ),
+              icon: const Icon(Icons.task_alt_rounded, size: 16),
+              label: const Text('Hoàn tất dịch vụ', style: TextStyle(fontSize: 13)),
+              onPressed: onComplete,
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (onChat != null) {
+      return Align(
+        alignment: Alignment.centerRight,
+        child: OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.primary,
+            side: const BorderSide(color: AppColors.primary),
             padding: const EdgeInsets.symmetric(
               horizontal: AppDimensions.md,
               vertical: AppDimensions.xs,
@@ -273,9 +445,9 @@ class AppointmentCard extends StatelessWidget {
               borderRadius: AppDimensions.borderRadiusSm,
             ),
           ),
-          icon: const Icon(Icons.task_alt_rounded, size: 16),
-          label: const Text('Hoàn tất dịch vụ', style: TextStyle(fontSize: 13)),
-          onPressed: onComplete,
+          icon: const Icon(Icons.chat_bubble_outline_rounded, size: 15),
+          label: const Text('Nhắn tin', style: TextStyle(fontSize: 13)),
+          onPressed: onChat,
         ),
       );
     }

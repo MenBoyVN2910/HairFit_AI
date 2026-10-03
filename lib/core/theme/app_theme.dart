@@ -1,5 +1,13 @@
+// ============================================================================
+// File: lib/core/theme/app_theme.dart
+// Mục đích: Định nghĩa giao diện tổng thể (Theme) của ứng dụng.
+// Kết cấu:
+//  - Cấu hình ThemeData cho Material 3 bao gồm màu sắc, font chữ và các component styles.
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import '../constants/app_text_styles.dart';
@@ -84,7 +92,9 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: AppDimensions.borderRadiusMd,
           ),
-          textStyle: AppTextStyles.buttonMedium.copyWith(color: AppColors.primary),
+          textStyle: AppTextStyles.buttonMedium.copyWith(
+            color: AppColors.primary,
+          ),
           padding: const EdgeInsets.symmetric(
             horizontal: AppDimensions.lg,
             vertical: AppDimensions.md,
@@ -96,7 +106,9 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.accent,
-          textStyle: AppTextStyles.buttonMedium.copyWith(color: AppColors.accent),
+          textStyle: AppTextStyles.buttonMedium.copyWith(
+            color: AppColors.accent,
+          ),
           padding: const EdgeInsets.symmetric(
             horizontal: AppDimensions.md,
             vertical: AppDimensions.sm,
@@ -109,8 +121,12 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.inputBackground,
         contentPadding: AppDimensions.paddingInput,
-        hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textMuted),
-        labelStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+        hintStyle: AppTextStyles.bodyMedium.copyWith(
+          color: AppColors.textMuted,
+        ),
+        labelStyle: AppTextStyles.bodyMedium.copyWith(
+          color: AppColors.textSecondary,
+        ),
         border: OutlineInputBorder(
           borderRadius: AppDimensions.borderRadiusMd,
           borderSide: const BorderSide(color: AppColors.border, width: 1),
@@ -139,9 +155,16 @@ class AppTheme {
         backgroundColor: AppColors.inputBackground,
         selectedColor: AppColors.primary,
         secondarySelectedColor: AppColors.accent,
-        labelStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.textPrimary),
-        secondaryLabelStyle: AppTextStyles.bodySmall.copyWith(color: Colors.white),
-        padding: const EdgeInsets.symmetric(horizontal: AppDimensions.sm, vertical: AppDimensions.xs),
+        labelStyle: AppTextStyles.bodySmall.copyWith(
+          color: AppColors.textPrimary,
+        ),
+        secondaryLabelStyle: AppTextStyles.bodySmall.copyWith(
+          color: Colors.white,
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.sm,
+          vertical: AppDimensions.xs,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: AppDimensions.borderRadiusSm,
           side: const BorderSide(color: AppColors.border),

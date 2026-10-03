@@ -1,15 +1,25 @@
+// ============================================================================
+// File: test/widget_test.dart
+// Mục đích: Chứa các kịch bản kiểm thử (Test) cho widget.
+// Kết cấu:
+//  - Sử dụng flutter_test, bao gồm các nhóm test (group) và các trường hợp test (test/testWidgets) cụ thể.
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hairfit_ai/core/widgets/app_button.dart';
 import 'package:hairfit_ai/core/widgets/app_text_field.dart';
 import 'package:hairfit_ai/core/widgets/empty_state.dart';
 import 'package:hairfit_ai/core/widgets/error_retry.dart';
+import 'package:hairfit_ai/core/widgets/loading_shimmer.dart';
 import 'package:hairfit_ai/core/widgets/rating_stars.dart';
 import 'package:hairfit_ai/core/widgets/status_badge.dart';
 
 void main() {
   group('Core Shared Widgets Test (Task 1.6)', () {
-    testWidgets('AppButton renders text and triggers callback when tapped', (tester) async {
+    testWidgets('AppButton renders text and triggers callback when tapped', (
+      tester,
+    ) async {
       bool tapped = false;
 
       await tester.pumpWidget(
@@ -28,23 +38,28 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('AppButton shows CircularProgressIndicator when isLoading is true', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: AppButton(
-              text: 'Đang tải...',
-              isLoading: true,
-              onPressed: () {},
+    testWidgets(
+      'AppButton shows CircularProgressIndicator when isLoading is true',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: AppButton(
+                text: 'Đang tải...',
+                isLoading: true,
+                onPressed: () {},
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    });
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      },
+    );
 
-    testWidgets('AppTextField renders label, hint and accepts input', (tester) async {
+    testWidgets('AppTextField renders label, hint and accepts input', (
+      tester,
+    ) async {
       final controller = TextEditingController();
 
       await tester.pumpWidget(
@@ -66,7 +81,9 @@ void main() {
       expect(controller.text, 'Nguyễn Văn A');
     });
 
-    testWidgets('StatusBadge renders appropriate label and colors', (tester) async {
+    testWidgets('StatusBadge renders appropriate label and colors', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -91,12 +108,7 @@ void main() {
     testWidgets('RatingStars renders score correctly', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: RatingStars(
-              rating: 4.8,
-              reviewCount: 25,
-            ),
-          ),
+          home: Scaffold(body: RatingStars(rating: 4.8, reviewCount: 25)),
         ),
       );
 
@@ -105,7 +117,9 @@ void main() {
       expect(find.byIcon(Icons.star_rounded), findsOneWidget);
     });
 
-    testWidgets('EmptyState renders title, message and triggers action', (tester) async {
+    testWidgets('EmptyState renders title, message and triggers action', (
+      tester,
+    ) async {
       bool actionTriggered = false;
 
       await tester.pumpWidget(
@@ -129,7 +143,9 @@ void main() {
       expect(actionTriggered, isTrue);
     });
 
-    testWidgets('ErrorRetry renders error message and triggers retry', (tester) async {
+    testWidgets('ErrorRetry renders error message and triggers retry', (
+      tester,
+    ) async {
       bool retryTriggered = false;
 
       await tester.pumpWidget(
@@ -149,6 +165,40 @@ void main() {
 
       await tester.tap(find.text('Thử lại'));
       expect(retryTriggered, isTrue);
+    });
+
+    testWidgets('LoadingShimmer renders correctly with custom dimensions', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: LoadingShimmer(width: 100, height: 20),
+          ),
+        ),
+      );
+
+      expect(find.byType(LoadingShimmer), findsOneWidget);
+    });
+
+    testWidgets('LoadingShimmer.card and listTile render properly', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                LoadingShimmer.card(height: 150),
+                LoadingShimmer.listTile(),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(LoadingShimmer), findsNothing);
+      expect(find.byType(Scaffold), findsOneWidget);
     });
   });
 }

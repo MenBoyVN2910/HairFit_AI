@@ -1,3 +1,10 @@
+// ============================================================================
+// File: test/ai_domain_test.dart
+// Mục đích: Chứa các kịch bản kiểm thử (Test) cho ai_domain.
+// Kết cấu:
+//  - Sử dụng flutter_test, bao gồm các nhóm test (group) và các trường hợp test (test/testWidgets) cụ thể.
+// ============================================================================
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hairfit_ai/core/services/seed_data_service.dart';
 import 'package:hairfit_ai/features/ai_consult/domain/face_shape.dart';
@@ -65,17 +72,20 @@ void main() {
       expect(metrics.aspectRatio, greaterThan(1.55));
     });
 
-    test('Classifies Heart face correctly (wide forehead, narrow pointed chin)', () {
-      final metrics = analyzer.classifyFromMetrics(
-        faceHeight: 190,
-        cheekboneWidth: 145, // aspectRatio = 1.31
-        foreheadWidth: 150,
-        jawlineWidth: 110, // foreheadToJaw = 150/110 = 1.36 >= 1.22
-        chinWidth: 40, // chinTaper = 40/110 = 0.36 <= 0.45
-      );
-      expect(metrics.faceShape, equals(FaceShape.heart));
-      expect(metrics.foreheadToJawRatio, greaterThanOrEqualTo(1.22));
-    });
+    test(
+      'Classifies Heart face correctly (wide forehead, narrow pointed chin)',
+      () {
+        final metrics = analyzer.classifyFromMetrics(
+          faceHeight: 190,
+          cheekboneWidth: 145, // aspectRatio = 1.31
+          foreheadWidth: 150,
+          jawlineWidth: 110, // foreheadToJaw = 150/110 = 1.36 >= 1.22
+          chinWidth: 40, // chinTaper = 40/110 = 0.36 <= 0.45
+        );
+        expect(metrics.faceShape, equals(FaceShape.heart));
+        expect(metrics.foreheadToJawRatio, greaterThanOrEqualTo(1.22));
+      },
+    );
 
     test('Classifies Oval face correctly (ideal golden ratio ~1.3-1.5)', () {
       final metrics = analyzer.classifyFromMetrics(
@@ -121,8 +131,13 @@ void main() {
       expect(result.faceShape, equals(FaceShape.round));
       expect(result.primaryRecommendations.isNotEmpty, isTrue);
 
-      final styleIds = result.primaryRecommendations.map((r) => r.style.id).toList();
-      expect(styleIds, anyOf(contains('pompadour'), contains('undercut'), contains('quiff')));
+      final styleIds = result.primaryRecommendations
+          .map((r) => r.style.id)
+          .toList();
+      expect(
+        styleIds,
+        anyOf(contains('pompadour'), contains('undercut'), contains('quiff')),
+      );
     });
 
     test('Recommends styles matching Heart face', () {
@@ -132,8 +147,17 @@ void main() {
       );
 
       expect(result.faceShape, equals(FaceShape.heart));
-      final styleIds = result.primaryRecommendations.map((r) => r.style.id).toList();
-      expect(styleIds, anyOf(contains('layer_male'), contains('side_part'), contains('two_block')));
+      final styleIds = result.primaryRecommendations
+          .map((r) => r.style.id)
+          .toList();
+      expect(
+        styleIds,
+        anyOf(
+          contains('layer_male'),
+          contains('side_part'),
+          contains('two_block'),
+        ),
+      );
     });
 
     test('Recommends styles matching Oblong face', () {
@@ -143,8 +167,17 @@ void main() {
       );
 
       expect(result.faceShape, equals(FaceShape.oblong));
-      final styleIds = result.primaryRecommendations.map((r) => r.style.id).toList();
-      expect(styleIds, anyOf(contains('french_crop'), contains('side_part'), contains('layer_male')));
+      final styleIds = result.primaryRecommendations
+          .map((r) => r.style.id)
+          .toList();
+      expect(
+        styleIds,
+        anyOf(
+          contains('french_crop'),
+          contains('side_part'),
+          contains('layer_male'),
+        ),
+      );
     });
   });
 
@@ -160,26 +193,33 @@ void main() {
       }
     });
 
-    test('Seed data contains exactly 5 barbers with valid durations and coords', () {
-      expect(SeedDataService.sampleBarbers.length, equals(5));
+    test(
+      'Seed data contains exactly 5 barbers with valid durations and coords',
+      () {
+        expect(SeedDataService.sampleBarbers.length, equals(5));
 
-      for (final barber in SeedDataService.sampleBarbers) {
-        expect(barber.uid.isNotEmpty, isTrue);
-        expect(barber.displayName.isNotEmpty, isTrue);
-        expect(barber.location.latitude, greaterThan(0));
-        expect(barber.location.longitude, greaterThan(0));
-        expect(barber.services.isNotEmpty, isTrue);
+        for (final barber in SeedDataService.sampleBarbers) {
+          expect(barber.uid.isNotEmpty, isTrue);
+          expect(barber.displayName.isNotEmpty, isTrue);
+          expect(barber.location.latitude, greaterThan(0));
+          expect(barber.location.longitude, greaterThan(0));
+          expect(barber.services.isNotEmpty, isTrue);
 
-        // Kiểm tra thời lượng mọi dịch vụ đều là bội số của 30 phút
-        for (final svc in barber.services) {
-          expect(svc.durationMinutes % 30, equals(0), reason: '${svc.name} duration is not a multiple of 30');
-          expect(svc.price, greaterThan(0));
+          // Kiểm tra thời lượng mọi dịch vụ đều là bội số của 30 phút
+          for (final svc in barber.services) {
+            expect(
+              svc.durationMinutes % 30,
+              equals(0),
+              reason: '${svc.name} duration is not a multiple of 30',
+            );
+            expect(svc.price, greaterThan(0));
+          }
+
+          // Kiểm tra giờ làm việc có đủ các ngày
+          expect(barber.workingHours.containsKey('mon'), isTrue);
+          expect(barber.workingHours.containsKey('sun'), isTrue);
         }
-
-        // Kiểm tra giờ làm việc có đủ các ngày
-        expect(barber.workingHours.containsKey('mon'), isTrue);
-        expect(barber.workingHours.containsKey('sun'), isTrue);
-      }
-    });
+      },
+    );
   });
 }

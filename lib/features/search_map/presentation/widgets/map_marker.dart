@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/features/search_map/presentation/widgets/map_marker.dart
+// Mục đích: Thành phần giao diện (Widget) con thuộc tính năng search_map.
+// Kết cấu:
+//  - Widget nhận dữ liệu và hiển thị UI, đóng gói giao diện cho gọn gàng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../providers/search_provider.dart';
 
@@ -7,11 +15,7 @@ class BarberMapMarker extends StatelessWidget {
   final BarberWithDistance item;
   final VoidCallback onTap;
 
-  const BarberMapMarker({
-    super.key,
-    required this.item,
-    required this.onTap,
-  });
+  const BarberMapMarker({super.key, required this.item, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -30,16 +34,14 @@ class BarberMapMarker extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: (isMatch ? AppColors.accent : Colors.black)
-                      .withValues(alpha: 0.35),
+                  color: (isMatch ? AppColors.accent : Colors.black).withValues(
+                    alpha: 0.35,
+                  ),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),
               ],
-              border: Border.all(
-                color: Colors.white,
-                width: 2.0,
-              ),
+              border: Border.all(color: Colors.white, width: 2.0),
             ),
             child: Icon(
               isMatch ? Icons.auto_awesome : Icons.content_cut_rounded,
@@ -86,7 +88,10 @@ class UserLocationMarker extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.blue.withValues(alpha: 0.2),
-        border: Border.all(color: Colors.blue.withValues(alpha: 0.5), width: 1.5),
+        border: Border.all(
+          color: Colors.blue.withValues(alpha: 0.5),
+          width: 1.5,
+        ),
       ),
       child: Center(
         child: Container(

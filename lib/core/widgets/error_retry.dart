@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/core/widgets/error_retry.dart
+// Mục đích: Thành phần giao diện (Widget) dùng chung.
+// Kết cấu:
+//  - Widget tái sử dụng (Reusable Widget) nhận tham số qua constructor và không chứa logic nghiệp vụ phức tạp.
+// ============================================================================
+
 import 'package:flutter/material.dart';
+
 import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import '../constants/app_text_styles.dart';
@@ -60,7 +68,11 @@ class ErrorRetry extends StatelessWidget {
             const SizedBox(height: AppDimensions.xl),
             AppButton(
               text: retryButtonText,
-              icon: const Icon(Icons.refresh_rounded, color: Colors.white, size: 18),
+              icon: const Icon(
+                Icons.refresh_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
               onPressed: onRetry,
               variant: AppButtonVariant.primary,
             ),

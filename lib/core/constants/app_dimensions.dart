@@ -1,3 +1,10 @@
+// ============================================================================
+// File: lib/core/constants/app_dimensions.dart
+// Mục đích: Lưu trữ các hằng số dùng chung toàn ứng dụng.
+// Kết cấu:
+//  - Các biến static const như màu sắc, kích thước, text style hoặc business rules.
+// ============================================================================
+
 import 'package:flutter/material.dart';
 
 /// Các hằng số kích thước, khoảng cách và bo góc theo Design System
@@ -24,12 +31,24 @@ class AppDimensions {
   static const double radiusFull = 999.0;
 
   // BorderRadius objects
-  static const BorderRadius borderRadiusXs = BorderRadius.all(Radius.circular(radiusXs));
-  static const BorderRadius borderRadiusSm = BorderRadius.all(Radius.circular(radiusSm));
-  static const BorderRadius borderRadiusMd = BorderRadius.all(Radius.circular(radiusMd));
-  static const BorderRadius borderRadiusLg = BorderRadius.all(Radius.circular(radiusLg));
-  static const BorderRadius borderRadiusXl = BorderRadius.all(Radius.circular(radiusXl));
-  static const BorderRadius borderRadiusFull = BorderRadius.all(Radius.circular(radiusFull));
+  static const BorderRadius borderRadiusXs = BorderRadius.all(
+    Radius.circular(radiusXs),
+  );
+  static const BorderRadius borderRadiusSm = BorderRadius.all(
+    Radius.circular(radiusSm),
+  );
+  static const BorderRadius borderRadiusMd = BorderRadius.all(
+    Radius.circular(radiusMd),
+  );
+  static const BorderRadius borderRadiusLg = BorderRadius.all(
+    Radius.circular(radiusLg),
+  );
+  static const BorderRadius borderRadiusXl = BorderRadius.all(
+    Radius.circular(radiusXl),
+  );
+  static const BorderRadius borderRadiusFull = BorderRadius.all(
+    Radius.circular(radiusFull),
+  );
 
   // Button Heights
   static const double buttonHeightSm = 36.0;
@@ -53,7 +72,13 @@ class AppDimensions {
   static const double elevationHigh = 8.0;
 
   // Edge insets helpers
-  static const EdgeInsets paddingScreen = EdgeInsets.symmetric(horizontal: lg, vertical: lg);
+  static const EdgeInsets paddingScreen = EdgeInsets.symmetric(
+    horizontal: lg,
+    vertical: lg,
+  );
   static const EdgeInsets paddingCard = EdgeInsets.all(lg);
-  static const EdgeInsets paddingInput = EdgeInsets.symmetric(horizontal: lg, vertical: md);
+  static const EdgeInsets paddingInput = EdgeInsets.symmetric(
+    horizontal: lg,
+    vertical: md,
+  );
 }

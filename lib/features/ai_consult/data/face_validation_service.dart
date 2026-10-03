@@ -1,5 +1,13 @@
+// ============================================================================
+// File: lib/features/ai_consult/data/face_validation_service.dart
+// Mục đích: Quản lý dữ liệu (Repository) cho tính năng ai_consult.
+// Kết cấu:
+//  - Tương tác với cơ sở dữ liệu (Firestore) hoặc API, cung cấp CRUD operations.
+// ============================================================================
+
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+
 import '../../../core/constants/business_constants.dart';
 
 /// Kết quả xác thực khuôn mặt từ ML Kit
@@ -24,10 +32,7 @@ class FaceValidationResult {
     this.faceCount = 0,
   });
 
-  factory FaceValidationResult.valid({
-    required Face face,
-    int faceCount = 1,
-  }) {
+  factory FaceValidationResult.valid({required Face face, int faceCount = 1}) {
     return FaceValidationResult._(
       isValid: true,
       face: face,
@@ -63,16 +68,17 @@ class FaceValidationService {
   final FaceDetector _faceDetector;
 
   FaceValidationService({FaceDetector? customDetector})
-      : _faceDetector = customDetector ??
-            FaceDetector(
-              options: FaceDetectorOptions(
-                enableLandmarks: true,
-                enableContours: true,
-                enableClassification: true,
-                performanceMode: FaceDetectorMode.accurate,
-                minFaceSize: 0.15,
-              ),
-            );
+    : _faceDetector =
+          customDetector ??
+          FaceDetector(
+            options: FaceDetectorOptions(
+              enableLandmarks: true,
+              enableContours: true,
+              enableClassification: true,
+              performanceMode: FaceDetectorMode.accurate,
+              minFaceSize: 0.15,
+            ),
+          );
 
   /// Kiểm tra ảnh khuôn mặt theo các tiêu chí:
   /// 1. Có khuôn mặt nào không (faces.isNotEmpty)
@@ -88,17 +94,20 @@ class FaceValidationService {
       if (faces.isEmpty) {
         return FaceValidationResult.invalid(
           error: 'Không phát hiện khuôn mặt trong ảnh',
-          hint: 'Vui lòng căn chỉnh sao cho khuôn mặt nằm trọn trong khung hình',
+          hint:
+              'Vui lòng căn chỉnh sao cho khuôn mặt nằm trọn trong khung hình',
           faceCount: 0,
         );
       }
 
       // Trường hợp 2: Lấy khuôn mặt lớn nhất (nổi bật nhất)
-      final primaryFace = faces.reduce((a, b) =>
-          a.boundingBox.width * a.boundingBox.height >
-                  b.boundingBox.width * b.boundingBox.height
-              ? a
-              : b);
+      final primaryFace = faces.reduce(
+        (a, b) =>
+            a.boundingBox.width * a.boundingBox.height >
+                b.boundingBox.width * b.boundingBox.height
+            ? a
+            : b,
+      );
 
       final eulerY = primaryFace.headEulerAngleY ?? 0.0;
       final eulerX = primaryFace.headEulerAngleX ?? 0.0;
@@ -108,7 +117,8 @@ class FaceValidationService {
       if (eulerY.abs() > BusinessConstants.maxHeadEulerAngleY) {
         return FaceValidationResult.invalid(
           error: 'Vui lòng nhìn thẳng vào camera',
-          hint: 'Gương mặt hiện đang bị nghiêng sang một bên (${eulerY.toStringAsFixed(1)}°)',
+          hint:
+              'Gương mặt hiện đang bị nghiêng sang một bên (${eulerY.toStringAsFixed(1)}°)',
           eulerX: eulerX,
           eulerY: eulerY,
           boundingBoxWidth: boxWidth,
@@ -120,7 +130,8 @@ class FaceValidationService {
       if (eulerX.abs() > BusinessConstants.maxHeadEulerAngleX) {
         return FaceValidationResult.invalid(
           error: 'Vui lòng giữ đầu thẳng đứng',
-          hint: 'Không ngửa đầu lên trên hoặc cúi đầu xuống dưới (${eulerX.toStringAsFixed(1)}°)',
+          hint:
+              'Không ngửa đầu lên trên hoặc cúi đầu xuống dưới (${eulerX.toStringAsFixed(1)}°)',
           eulerX: eulerX,
           eulerY: eulerY,
           boundingBoxWidth: boxWidth,

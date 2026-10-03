@@ -4,6 +4,13 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
+    <!-- Hỗ trợ các thiết bị không có phần cứng camera (Tablet, Chromebook) vẫn cài được app -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+
+    <!-- Quyền truy cập ảnh thư viện tương thích Android cũ (Android 8.0 - 12 / API 26-32) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+
     <application
         android:label="HairFit AI"
         android:name="${applicationName}"

@@ -1,3 +1,10 @@
+// ============================================================================
+// File: lib/core/constants/business_constants.dart
+// Mục đích: Lưu trữ các hằng số dùng chung toàn ứng dụng.
+// Kết cấu:
+//  - Các biến static const như màu sắc, kích thước, text style hoặc business rules.
+// ============================================================================
+
 /// Hằng số nghiệp vụ toàn hệ thống HairFit AI
 class BusinessConstants {
   BusinessConstants._();

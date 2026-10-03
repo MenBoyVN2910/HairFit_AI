@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/features/booking/presentation/widgets/booking_summary.dart
+// Mục đích: Thành phần giao diện (Widget) con thuộc tính năng booking.
+// Kết cấu:
+//  - Widget nhận dữ liệu và hiển thị UI, đóng gói giao diện cho gọn gàng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_text_styles.dart';
@@ -75,9 +83,14 @@ class BookingSummary extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Tổng thanh toán (tại tiệm)', style: AppTextStyles.labelMedium),
+                  const Text(
+                    'Tổng thanh toán (tại tiệm)',
+                    style: AppTextStyles.labelMedium,
+                  ),
                   Text(
-                    service != null ? DateFormatter.formatCurrency(service!.price) : '0 đ',
+                    service != null
+                        ? DateFormatter.formatCurrency(service!.price)
+                        : '0 đ',
                     style: AppTextStyles.h3.copyWith(color: AppColors.accent),
                   ),
                 ],
@@ -108,12 +121,17 @@ class BookingSummary extends StatelessWidget {
         Icon(icon, size: 18, color: AppColors.textSecondary),
         const SizedBox(width: AppDimensions.sm),
         Text(label, style: AppTextStyles.bodySmall),
-        const Spacer(),
-        Text(
-          value,
-          style: AppTextStyles.labelMedium.copyWith(
-            color: highlightValue ? AppColors.accent : AppColors.textPrimary,
-            fontWeight: highlightValue ? FontWeight.bold : FontWeight.w600,
+        const SizedBox(width: AppDimensions.sm),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.labelMedium.copyWith(
+              color: highlightValue ? AppColors.accent : AppColors.textPrimary,
+              fontWeight: highlightValue ? FontWeight.bold : FontWeight.w600,
+            ),
           ),
         ),
       ],

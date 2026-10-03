@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../../../models/appointment_model.dart';
 import '../../booking/data/booking_repository.dart';
 
@@ -144,5 +145,61 @@ class AppointmentRepository {
       cancelledByUid: cancelledByUid,
       currentTime: currentTime,
     );
+  }
+
+  /// Đánh giá lịch hẹn và cập nhật điểm trung bình của thợ
+  Future<void> rateAppointment({
+    required String appointmentId,
+    required String barberId,
+    required int rating,
+    String? customerId,
+    String? customerName,
+    String? comment,
+  }) async {
+    final batch = _firestore.batch();
+
+    // 1. Cập nhật appointment
+    final appointmentRef =
+        _firestore.collection('appointments').doc(appointmentId);
+    batch.update(appointmentRef, {
+      'rating': rating,
+      'reviewComment': comment,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+
+    // 2. Lưu bản ghi đánh giá vào collection reviews
+    final reviewRef = _firestore.collection('reviews').doc();
+    batch.set(reviewRef, {
+      'id': reviewRef.id,
+      'appointmentId': appointmentId,
+      'barberId': barberId,
+      'customerId': customerId ?? '',
+      'customerName': customerName ?? 'Khách hàng',
+      'rating': rating,
+      'reviewComment': comment ?? '',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    // 3. Tính toán và cập nhật ratingAvg, ratingCount của thợ
+    try {
+      final barberRef = _firestore.collection('barberProfiles').doc(barberId);
+      final barberDoc = await barberRef.get();
+      if (barberDoc.exists) {
+        final data = barberDoc.data() ?? {};
+        final currentAvg = (data['ratingAvg'] as num?)?.toDouble() ?? 5.0;
+        final currentCount = (data['ratingCount'] as num?)?.toInt() ?? 0;
+        final newCount = currentCount + 1;
+        final newAvg = ((currentAvg * currentCount) + rating) / newCount;
+        batch.update(barberRef, {
+          'ratingAvg': double.parse(newAvg.toStringAsFixed(1)),
+          'ratingCount': newCount,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+    } catch (e) {
+      debugPrint('⚠️ [AppointmentRepository] Không thể cập nhật ratingAvg thợ: $e');
+    }
+
+    await batch.commit();
   }
 }

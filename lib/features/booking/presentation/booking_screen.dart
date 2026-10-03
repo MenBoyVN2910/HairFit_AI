@@ -1,10 +1,19 @@
+// ============================================================================
+// File: lib/features/booking/presentation/booking_screen.dart
+// Mục đích: Màn hình giao diện (Screen) chính của tính năng booking.
+// Kết cấu:
+//  - Sử dụng ConsumerWidget/StatefulWidget, kết nối UI với Provider để hiển thị trạng thái và xử lý sự kiện người dùng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/date_formatter.dart';
+import '../../../core/widgets/app_avatar.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/error_retry.dart';
 import '../../../models/barber_profile_model.dart';
@@ -49,14 +58,18 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
     ServiceModel? preselected;
     if (widget.preselectedServiceId != null) {
-      final matches = barber.services.where((s) => s.id == widget.preselectedServiceId);
+      final matches = barber.services.where(
+        (s) => s.id == widget.preselectedServiceId,
+      );
       if (matches.isNotEmpty) {
         preselected = matches.first;
       }
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(bookingNotifierProvider.notifier).initialize(
+      ref
+          .read(bookingNotifierProvider.notifier)
+          .initialize(
             barber: barber,
             preselectedService: preselected,
             hairstyleId: widget.hairstyleId,
@@ -87,7 +100,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     if (success) {
       _showSuccessDialog();
     } else {
-      final error = ref.read(bookingNotifierProvider).errorMessage ??
+      final error =
+          ref.read(bookingNotifierProvider).errorMessage ??
           'Không thể hoàn tất đặt lịch. Vui lòng thử lại!';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -107,37 +121,39 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: AppDimensions.borderRadiusLg,
         ),
-        content: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppDimensions.md),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: const BoxDecoration(
-                  color: AppColors.success,
-                  shape: BoxShape.circle,
+        content: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppDimensions.md),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: const BoxDecoration(
+                    color: AppColors.success,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    color: Colors.white,
+                    size: 40,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.check_rounded,
-                  color: Colors.white,
-                  size: 40,
+                const SizedBox(height: AppDimensions.md),
+                const Text(
+                  'Đặt Lịch Thành Công!',
+                  style: AppTextStyles.h3,
+                  textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(height: AppDimensions.md),
-              const Text(
-                'Đặt Lịch Thành Công!',
-                style: AppTextStyles.h3,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppDimensions.sm),
-              const Text(
-                'Lịch hẹn của bạn đã được chuyển tới thợ cắt tóc để xác nhận. Bạn có thể theo dõi tiến độ trong mục Lịch hẹn.',
-                style: AppTextStyles.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-            ],
+                const SizedBox(height: AppDimensions.sm),
+                const Text(
+                  'Lịch hẹn của bạn đã được chuyển tới thợ cắt tóc để xác nhận. Bạn có thể theo dõi tiến độ trong mục Lịch hẹn.',
+                  style: AppTextStyles.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
         actions: [
@@ -192,9 +208,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(AppDimensions.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 720),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                       // Header tóm tắt thợ
                       _buildBarberHeader(barber),
                       const SizedBox(height: AppDimensions.lg),
@@ -240,6 +259,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   ),
                 ),
               ),
+            ),
+          ),
 
               // Sticky Bottom Action Bar
               _buildBottomBar(barber, bookingState),
@@ -260,14 +281,13 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 26,
-            backgroundColor: AppColors.secondary,
-            backgroundImage:
-                barber.avatarUrl.isNotEmpty ? NetworkImage(barber.avatarUrl) : null,
-            child: barber.avatarUrl.isEmpty
-                ? const Icon(Icons.storefront_rounded, color: Colors.white, size: 28)
-                : null,
+          AppAvatar(
+            shape: BoxShape.circle,
+            size: 52,
+            imageUrl: barber.avatarUrl,
+            fallbackUrl: barber.coverUrl,
+            name: barber.displayName,
+            fallbackIcon: Icons.storefront_rounded,
           ),
           const SizedBox(width: AppDimensions.md),
           Expanded(
@@ -310,40 +330,50 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         ],
       ),
       child: SafeArea(
-        child: Row(
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: Row(
               children: [
-                const Text(
-                  'Tổng tiền',
-                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Tổng tiền',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    Text(
+                      bookingState.selectedService != null
+                          ? DateFormatter.formatCurrency(
+                              bookingState.selectedService!.price,
+                            )
+                          : '0 đ',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.accent,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  bookingState.selectedService != null
-                      ? DateFormatter.formatCurrency(bookingState.selectedService!.price)
-                      : '0 đ',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.accent,
+                const SizedBox(width: AppDimensions.lg),
+                Expanded(
+                  child: AppButton(
+                    text: 'Xác Nhận Đặt Lịch',
+                    icon: const Icon(Icons.check_circle_outline_rounded, size: 18),
+                    isLoading: isSubmitting,
+                    onPressed: canSubmit
+                        ? () => _handleConfirmBooking(barber: barber)
+                        : null,
                   ),
                 ),
               ],
             ),
-            const SizedBox(width: AppDimensions.lg),
-            Expanded(
-              child: AppButton(
-                text: 'Xác Nhận Đặt Lịch',
-                icon: const Icon(Icons.check_circle_outline_rounded, size: 18),
-                isLoading: isSubmitting,
-                onPressed: canSubmit
-                    ? () => _handleConfirmBooking(barber: barber)
-                    : null,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

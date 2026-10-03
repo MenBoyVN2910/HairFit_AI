@@ -1,3 +1,10 @@
+// ============================================================================
+// File: test/distance_helper_test.dart
+// Mục đích: Chứa các kịch bản kiểm thử (Test) cho distance_helper.
+// Kết cấu:
+//  - Sử dụng flutter_test, bao gồm các nhóm test (group) và các trường hợp test (test/testWidgets) cụ thể.
+// ============================================================================
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hairfit_ai/core/utils/distance_helper.dart';
 

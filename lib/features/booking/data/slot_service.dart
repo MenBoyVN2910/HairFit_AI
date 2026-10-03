@@ -1,3 +1,10 @@
+// ============================================================================
+// File: lib/features/booking/data/slot_service.dart
+// Mục đích: Quản lý dữ liệu (Repository) cho tính năng booking.
+// Kết cấu:
+//  - Tương tác với cơ sở dữ liệu (Firestore) hoặc API, cung cấp CRUD operations.
+// ============================================================================
+
 import '../../../core/constants/business_constants.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../models/barber_profile_model.dart';
@@ -162,7 +169,8 @@ class SlotService {
         : BusinessConstants.slotMinutes;
     final slotsCount = (durationMinutes / BusinessConstants.slotMinutes).ceil();
 
-    if (openMinutes >= closeMinutes || (closeMinutes - openMinutes) < durationMinutes) {
+    if (openMinutes >= closeMinutes ||
+        (closeMinutes - openMinutes) < durationMinutes) {
       return [];
     }
 

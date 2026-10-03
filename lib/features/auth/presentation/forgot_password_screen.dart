@@ -1,6 +1,14 @@
+// ============================================================================
+// File: lib/features/auth/presentation/forgot_password_screen.dart
+// Mục đích: Màn hình giao diện (Screen) chính của tính năng auth.
+// Kết cấu:
+//  - Sử dụng ConsumerWidget/StatefulWidget, kết nối UI với Provider để hiển thị trạng thái và xử lý sự kiện người dùng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -14,7 +22,8 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
@@ -37,15 +46,16 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     });
 
     try {
-      await ref.read(authStateProvider.notifier).sendPasswordReset(_emailController.text.trim());
+      await ref
+          .read(authStateProvider.notifier)
+          .sendPasswordReset(_emailController.text.trim());
       setState(() {
         _isSent = true;
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString())));
       }
     } finally {
       if (mounted) {
@@ -71,7 +81,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: AppDimensions.paddingScreen,
-          child: _isSent ? _buildSuccessView() : _buildFormView(),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: _isSent ? _buildSuccessView() : _buildFormView(),
+            ),
+          ),
         ),
       ),
     );
@@ -88,7 +103,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           const SizedBox(height: AppDimensions.xs),
           Text(
             'Nhập địa chỉ email tài khoản của bạn để nhận liên kết đặt lại mật khẩu an toàn.',
-            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
           const SizedBox(height: AppDimensions.xxl),
 
@@ -98,7 +115,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             validator: Validators.email,
-            prefixIcon: const Icon(Icons.email_outlined, size: 20, color: AppColors.textSecondary),
+            prefixIcon: const Icon(
+              Icons.email_outlined,
+              size: 20,
+              color: AppColors.textSecondary,
+            ),
           ),
           const SizedBox(height: AppDimensions.xl),
 
@@ -124,7 +145,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               color: AppColors.successLight,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.mark_email_read_outlined, size: 56, color: AppColors.success),
+            child: const Icon(
+              Icons.mark_email_read_outlined,
+              size: 56,
+              color: AppColors.success,
+            ),
           ),
         ),
         const SizedBox(height: AppDimensions.xl),
@@ -136,7 +161,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         const SizedBox(height: AppDimensions.sm),
         Text(
           'Chúng tôi đã gửi liên kết đặt lại mật khẩu đến:',
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textSecondary,
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppDimensions.xs),
@@ -160,18 +187,32 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             children: [
               Text(
                 'Hướng dẫn đặt lại mật khẩu:',
-                style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.w700),
+                style: AppTextStyles.labelMedium.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: AppDimensions.md),
               _buildStep('1', 'Mở ứng dụng Gmail hoặc hộp thư email của bạn.'),
               const SizedBox(height: AppDimensions.sm),
-              _buildStep('2', 'Tìm email từ "noreply@..." với tiêu đề đặt lại mật khẩu.'),
+              _buildStep(
+                '2',
+                'Tìm email từ "noreply@..." với tiêu đề đặt lại mật khẩu.',
+              ),
               const SizedBox(height: AppDimensions.sm),
-              _buildStep('3', 'Nhấn vào liên kết trong email để mở trang đặt lại mật khẩu.'),
+              _buildStep(
+                '3',
+                'Nhấn vào liên kết trong email để mở trang đặt lại mật khẩu.',
+              ),
               const SizedBox(height: AppDimensions.sm),
-              _buildStep('4', 'Nhập mật khẩu mới trên trình duyệt và xác nhận.'),
+              _buildStep(
+                '4',
+                'Nhập mật khẩu mới trên trình duyệt và xác nhận.',
+              ),
               const SizedBox(height: AppDimensions.sm),
-              _buildStep('5', 'Quay lại HairFit AI và đăng nhập với mật khẩu mới!'),
+              _buildStep(
+                '5',
+                'Quay lại HairFit AI và đăng nhập với mật khẩu mới!',
+              ),
             ],
           ),
         ),
@@ -188,12 +229,18 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.warning),
+              const Icon(
+                Icons.info_outline_rounded,
+                size: 18,
+                color: AppColors.warning,
+              ),
               const SizedBox(width: AppDimensions.sm),
               Expanded(
                 child: Text(
                   'Nếu không thấy email, hãy kiểm tra mục Spam/Thư rác. Liên kết có hiệu lực trong vòng 1 giờ.',
-                  style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
             ],
@@ -201,37 +248,38 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         ),
         const SizedBox(height: AppDimensions.xl),
 
-        AppButton(
-          text: 'Quay lại đăng nhập',
-          onPressed: () => context.pop(),
-        ),
+        AppButton(text: 'Quay lại đăng nhập', onPressed: () => context.pop()),
         const SizedBox(height: AppDimensions.md),
 
         // Gửi lại email
         Center(
           child: TextButton(
-            onPressed: _isLoading ? null : () async {
-              setState(() => _isLoading = true);
-              try {
-                await ref.read(authStateProvider.notifier).sendPasswordReset(_emailController.text.trim());
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Đã gửi lại email đặt lại mật khẩu!'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString())),
-                  );
-                }
-              } finally {
-                if (mounted) setState(() => _isLoading = false);
-              }
-            },
+            onPressed: _isLoading
+                ? null
+                : () async {
+                    setState(() => _isLoading = true);
+                    try {
+                      await ref
+                          .read(authStateProvider.notifier)
+                          .sendPasswordReset(_emailController.text.trim());
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Đã gửi lại email đặt lại mật khẩu!'),
+                            backgroundColor: AppColors.success,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(e.toString())));
+                      }
+                    } finally {
+                      if (mounted) setState(() => _isLoading = false);
+                    }
+                  },
             child: Text(
               'Không nhận được email? Gửi lại',
               style: AppTextStyles.bodySmall.copyWith(

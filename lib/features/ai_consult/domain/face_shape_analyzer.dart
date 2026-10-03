@@ -1,6 +1,15 @@
+// ============================================================================
+// File: lib/features/ai_consult/domain/face_shape_analyzer.dart
+// Mục đích: Định nghĩa logic nghiệp vụ cốt lõi (Domain/Entity) cho tính năng ai_consult.
+// Kết cấu:
+//  - Các lớp xử lý logic độc lập, không phụ thuộc vào UI hay Framework (VD: AI Analyzer).
+// ============================================================================
+
 import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+
 import 'face_shape.dart';
 
 /// Các chỉ số nhân trắc học hình học của khuôn mặt đo được từ ML Kit Contours
@@ -33,6 +42,9 @@ class FaceAnthropometricMetrics {
     required this.explanationVi,
     required this.contourPointsCount,
   });
+
+  /// Tỷ lệ xương hàm so với gò má (alias của jawSquareness: jawlineWidth / cheekboneWidth)
+  double get jawToCheekRatio => jawSquareness;
 
   Map<String, dynamic> toMap() {
     return {
@@ -89,17 +101,29 @@ class FaceShapeAnalyzer {
     // 1. Phân vùng giải phẫu khuôn mặt theo trục dọc (Y-axis slices)
     // Trán: 15% -> 32% từ đỉnh đầu
     final foreheadPoints = points
-        .where((p) => p.y >= minY + totalHeight * 0.15 && p.y <= minY + totalHeight * 0.32)
+        .where(
+          (p) =>
+              p.y >= minY + totalHeight * 0.15 &&
+              p.y <= minY + totalHeight * 0.32,
+        )
         .toList();
 
     // Gò má: 40% -> 60% từ đỉnh đầu
     final cheekPoints = points
-        .where((p) => p.y >= minY + totalHeight * 0.40 && p.y <= minY + totalHeight * 0.60)
+        .where(
+          (p) =>
+              p.y >= minY + totalHeight * 0.40 &&
+              p.y <= minY + totalHeight * 0.60,
+        )
         .toList();
 
     // Xương quai hàm: 70% -> 85% từ đỉnh đầu
     final jawPoints = points
-        .where((p) => p.y >= minY + totalHeight * 0.70 && p.y <= minY + totalHeight * 0.85)
+        .where(
+          (p) =>
+              p.y >= minY + totalHeight * 0.70 &&
+              p.y <= minY + totalHeight * 0.85,
+        )
         .toList();
 
     // Đáy cằm: 90% -> 100%
@@ -107,10 +131,22 @@ class FaceShapeAnalyzer {
         .where((p) => p.y >= minY + totalHeight * 0.90 && p.y <= maxY)
         .toList();
 
-    final foreheadWidth = _calculateHorizontalSpan(foreheadPoints, fallback: totalHeight * 0.75);
-    final cheekWidth = _calculateHorizontalSpan(cheekPoints, fallback: totalHeight * 0.80);
-    final jawWidth = _calculateHorizontalSpan(jawPoints, fallback: totalHeight * 0.65);
-    final chinWidth = _calculateHorizontalSpan(chinPoints, fallback: totalHeight * 0.30);
+    final foreheadWidth = _calculateHorizontalSpan(
+      foreheadPoints,
+      fallback: totalHeight * 0.75,
+    );
+    final cheekWidth = _calculateHorizontalSpan(
+      cheekPoints,
+      fallback: totalHeight * 0.80,
+    );
+    final jawWidth = _calculateHorizontalSpan(
+      jawPoints,
+      fallback: totalHeight * 0.65,
+    );
+    final chinWidth = _calculateHorizontalSpan(
+      chinPoints,
+      fallback: totalHeight * 0.30,
+    );
 
     return classifyFromMetrics(
       faceHeight: totalHeight,
@@ -123,7 +159,10 @@ class FaceShapeAnalyzer {
   }
 
   /// Tính khoảng cách bề ngang (Max X - Min X) của tập điểm trong phân vùng
-  double _calculateHorizontalSpan(List<Point<int>> points, {required double fallback}) {
+  double _calculateHorizontalSpan(
+    List<Point<int>> points, {
+    required double fallback,
+  }) {
     if (points.isEmpty) return fallback;
     double minX = points.first.x.toDouble();
     double maxX = points.first.x.toDouble();

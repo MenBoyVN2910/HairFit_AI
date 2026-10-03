@@ -1,3 +1,10 @@
+// ============================================================================
+// File: test/models_test.dart
+// Mục đích: Chứa các kịch bản kiểm thử (Test) cho models.
+// Kết cấu:
+//  - Sử dụng flutter_test, bao gồm các nhóm test (group) và các trường hợp test (test/testWidgets) cụ thể.
+// ============================================================================
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hairfit_ai/models/appointment_model.dart';
 import 'package:hairfit_ai/models/barber_profile_model.dart';
@@ -39,13 +46,28 @@ void main() {
 
   group('ServiceModel Test', () {
     test('Calculates slotCount based on 30-minute block correctly', () {
-      const s1 = ServiceModel(id: '1', name: 'Cắt', price: 70000, durationMinutes: 30);
+      const s1 = ServiceModel(
+        id: '1',
+        name: 'Cắt',
+        price: 70000,
+        durationMinutes: 30,
+      );
       expect(s1.slotCount, equals(1));
 
-      const s2 = ServiceModel(id: '2', name: 'Combo', price: 120000, durationMinutes: 60);
+      const s2 = ServiceModel(
+        id: '2',
+        name: 'Combo',
+        price: 120000,
+        durationMinutes: 60,
+      );
       expect(s2.slotCount, equals(2));
 
-      const s3 = ServiceModel(id: '3', name: 'Uốn', price: 180000, durationMinutes: 90);
+      const s3 = ServiceModel(
+        id: '3',
+        name: 'Uốn',
+        price: 180000,
+        durationMinutes: 90,
+      );
       expect(s3.slotCount, equals(3));
     });
   });
@@ -75,9 +97,24 @@ void main() {
         address: 'Đà Nẵng',
         location: const GeoLocation(latitude: 16.0, longitude: 108.0),
         services: const [
-          ServiceModel(id: 's1', name: 'Dịch vụ 1', price: 80000, durationMinutes: 30),
-          ServiceModel(id: 's2', name: 'Dịch vụ 2', price: 150000, durationMinutes: 60),
-          ServiceModel(id: 's3', name: 'Dịch vụ 3', price: 120000, durationMinutes: 60),
+          ServiceModel(
+            id: 's1',
+            name: 'Dịch vụ 1',
+            price: 80000,
+            durationMinutes: 30,
+          ),
+          ServiceModel(
+            id: 's2',
+            name: 'Dịch vụ 2',
+            price: 150000,
+            durationMinutes: 60,
+          ),
+          ServiceModel(
+            id: 's3',
+            name: 'Dịch vụ 3',
+            price: 120000,
+            durationMinutes: 60,
+          ),
         ],
       );
 
@@ -127,13 +164,16 @@ void main() {
   });
 
   group('BookedSlotModel Test', () {
-    test('generateSlotId follows standard format: {barberId}_{yyyy-MM-dd}_{HH-mm}', () {
-      final slotId = BookedSlotModel.generateSlotId(
-        barberId: 'barber_456',
-        date: '2026-10-10',
-        time: '09:00',
-      );
-      expect(slotId, equals('barber_456_2026-10-10_09-00'));
-    });
+    test(
+      'generateSlotId follows standard format: {barberId}_{yyyy-MM-dd}_{HH-mm}',
+      () {
+        final slotId = BookedSlotModel.generateSlotId(
+          barberId: 'barber_456',
+          date: '2026-10-10',
+          time: '09:00',
+        );
+        expect(slotId, equals('barber_456_2026-10-10_09-00'));
+      },
+    );
   });
 }

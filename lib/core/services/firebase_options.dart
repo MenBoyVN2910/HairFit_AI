@@ -1,3 +1,10 @@
+// ============================================================================
+// File: lib/core/services/firebase_options.dart
+// Mục đích: Cung cấp dịch vụ hạ tầng (firebase_options.dart).
+// Kết cấu:
+//  - Lớp Service xử lý giao tiếp với các hệ thống bên ngoài hoặc phần cứng (Firebase, Location, API).
+// ============================================================================
+
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;

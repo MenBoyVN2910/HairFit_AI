@@ -1,3 +1,10 @@
+// ============================================================================
+// File: test/core_utils_test.dart
+// Mục đích: Chứa các kịch bản kiểm thử (Test) cho core_utils.
+// Kết cấu:
+//  - Sử dụng flutter_test, bao gồm các nhóm test (group) và các trường hợp test (test/testWidgets) cụ thể.
+// ============================================================================
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hairfit_ai/core/utils/date_formatter.dart';
 import 'package:hairfit_ai/core/utils/validators.dart';
@@ -49,7 +56,10 @@ void main() {
     });
 
     test('formatPriceRange formats range correctly', () {
-      expect(DateFormatter.formatPriceRange(70000, 70000).contains('70.000'), isTrue);
+      expect(
+        DateFormatter.formatPriceRange(70000, 70000).contains('70.000'),
+        isTrue,
+      );
       final range = DateFormatter.formatPriceRange(70000, 150000);
       expect(range.contains('70.000'), isTrue);
       expect(range.contains('150.000'), isTrue);

@@ -1,3 +1,10 @@
+// ============================================================================
+// File: lib/models/booked_slot_model.dart
+// Mục đích: Định nghĩa cấu trúc dữ liệu (booked_slot_model).
+// Kết cấu:
+//  - Lớp mô hình (Model) bao gồm các thuộc tính và phương thức chuyển đổi (toMap, fromMap, copyWith).
+// ============================================================================
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Mô hình slot thời gian đã đặt (bookedSlots/{slotId})
@@ -46,11 +53,15 @@ class BookedSlotModel {
       time: map['time'] as String? ?? '',
       appointmentId: map['appointmentId'] as String? ?? '',
       startTimestamp: parseTimestamp(map['startTimestamp']),
-      createdAt: map['createdAt'] is Timestamp ? (map['createdAt'] as Timestamp).toDate() : null,
+      createdAt: map['createdAt'] is Timestamp
+          ? (map['createdAt'] as Timestamp).toDate()
+          : null,
     );
   }
 
-  factory BookedSlotModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  factory BookedSlotModel.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
     return BookedSlotModel.fromMap(doc.data() ?? {}, id: doc.id);
   }
 
@@ -61,7 +72,9 @@ class BookedSlotModel {
       'time': time,
       'appointmentId': appointmentId,
       'startTimestamp': Timestamp.fromDate(startTimestamp),
-      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
+      'createdAt': createdAt != null
+          ? Timestamp.fromDate(createdAt!)
+          : FieldValue.serverTimestamp(),
     };
   }
 }

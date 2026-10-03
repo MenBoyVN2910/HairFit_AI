@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/features/ai_consult/presentation/widgets/face_camera_overlay.dart
+// Mục đích: Thành phần giao diện (Widget) con thuộc tính năng ai_consult.
+// Kết cấu:
+//  - Widget nhận dữ liệu và hiển thị UI, đóng gói giao diện cho gọn gàng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_text_styles.dart';
@@ -182,7 +190,9 @@ class FaceCameraOverlay extends StatelessWidget {
                       icon: const Icon(Icons.close, color: Colors.white70),
                       label: Text(
                         'Đóng khung hướng dẫn',
-                        style: AppTextStyles.caption.copyWith(color: Colors.white70),
+                        style: AppTextStyles.caption.copyWith(
+                          color: Colors.white70,
+                        ),
                       ),
                     ),
                   ],

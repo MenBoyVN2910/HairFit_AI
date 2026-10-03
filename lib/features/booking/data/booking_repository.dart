@@ -1,5 +1,14 @@
+// ============================================================================
+// File: lib/features/booking/data/booking_repository.dart
+// Mục đích: Quản lý dữ liệu (Repository) cho tính năng booking.
+// Kết cấu:
+//  - Tương tác với cơ sở dữ liệu (Firestore) hoặc API, cung cấp CRUD operations.
+// ============================================================================
+
 import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../../core/constants/business_constants.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../models/appointment_model.dart';
@@ -18,31 +27,33 @@ class BookingException implements Exception {
 class SlotAlreadyBookedException extends BookingException {
   final String slotId;
   SlotAlreadyBookedException(this.slotId)
-      : super('Khung giờ này vừa có người khác đặt. Vui lòng chọn khung giờ khác!');
+    : super(
+        'Khung giờ này vừa có người khác đặt. Vui lòng chọn khung giờ khác!',
+      );
 }
 
 /// Ngoại lệ khi khách hàng đã đạt giới hạn tối đa 2 lịch hẹn đang active (pending/confirmed)
 class MaxBookingsExceededException extends BookingException {
   MaxBookingsExceededException()
-      : super(
-          'Bạn đã có ${BusinessConstants.maxActiveBookingsPerCustomer} lịch hẹn chưa hoàn thành. Không thể đặt thêm!',
-        );
+    : super(
+        'Bạn đã có ${BusinessConstants.maxActiveBookingsPerCustomer} lịch hẹn chưa hoàn thành. Không thể đặt thêm!',
+      );
 }
 
 /// Ngoại lệ khi đặt lịch quá sát giờ (dưới 30 phút)
 class BookingLeadTimeException extends BookingException {
   BookingLeadTimeException()
-      : super(
-          'Vui lòng đặt lịch trước ít nhất ${BusinessConstants.leadTimeMinutes} phút!',
-        );
+    : super(
+        'Vui lòng đặt lịch trước ít nhất ${BusinessConstants.leadTimeMinutes} phút!',
+      );
 }
 
 /// Ngoại lệ khi đặt lịch vượt quá 30 ngày tới
 class BookingMaxDaysExceededException extends BookingException {
   BookingMaxDaysExceededException()
-      : super(
-          'Chỉ được đặt lịch trước tối đa ${BusinessConstants.maxBookingDaysAhead} ngày!',
-        );
+    : super(
+        'Chỉ được đặt lịch trước tối đa ${BusinessConstants.maxBookingDaysAhead} ngày!',
+      );
 }
 
 /// Ngoại lệ khi không thể hủy lịch (do quá hạn 30 phút hoặc sai trạng thái)
@@ -55,7 +66,7 @@ class BookingRepository {
   final FirebaseFirestore _firestore;
 
   BookingRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Đếm số lượng lịch hẹn đang active (pending hoặc confirmed) của một khách hàng
   Future<int> countActiveBookings(String customerId) async {
@@ -81,20 +92,125 @@ class BookingRepository {
     }
   }
 
-  /// Lấy danh sách các slot đã đặt của thợ theo ngày
+  /// Lấy danh sách các slot đã đặt của thợ theo ngày.
+  /// Chỉ coi là đã đặt khi có tài khoản khách hàng thực sự đặt (tồn tại appointment pending hoặc confirmed).
+  /// Không tự bịa, không dùng dữ liệu rác mồ côi.
   Future<List<BookedSlotModel>> getBookedSlotsForDate(
     String barberId,
     String date,
   ) async {
-    final snapshot = await _firestore
-        .collection('bookedSlots')
-        .where('barberId', isEqualTo: barberId)
-        .where('date', isEqualTo: date)
-        .get();
+    try {
+      // 1. Lấy tất cả lịch hẹn thật sự đang active (pending / confirmed) của thợ trong ngày này
+      final appointmentsSnapshot = await _firestore
+          .collection('appointments')
+          .where('barberId', isEqualTo: barberId)
+          .where('date', isEqualTo: date)
+          .get();
 
-    return snapshot.docs
-        .map((doc) => BookedSlotModel.fromFirestore(doc))
-        .toList();
+      final activeAppointments = appointmentsSnapshot.docs.where((doc) {
+        final data = doc.data();
+        final status = data['status'] as String?;
+        return status == 'pending' || status == 'confirmed';
+      }).toList();
+
+      // Nếu không có lịch hẹn thật nào đang active trong ngày này -> không có slot nào đã đặt
+      if (activeAppointments.isEmpty) {
+        // Chủ động dọn dẹp các document rác mồ côi nếu có trong bookedSlots
+        _cleanupOrphanedBookedSlots(barberId, date, activeAppointmentIds: {});
+        return [];
+      }
+
+      final activeAppointmentIds = activeAppointments
+          .map((doc) => doc.id)
+          .toSet();
+
+      // 2. Lấy danh sách các slot trong bookedSlots và chỉ giữ lại các slot liên kết với appointment active thật
+      final bookedSlotsSnapshot = await _firestore
+          .collection('bookedSlots')
+          .where('barberId', isEqualTo: barberId)
+          .where('date', isEqualTo: date)
+          .get();
+
+      final validSlots = <BookedSlotModel>[];
+      final orphanedDocRefs = <DocumentReference>[];
+
+      for (final doc in bookedSlotsSnapshot.docs) {
+        final data = doc.data();
+        final appointmentId = data['appointmentId'] as String? ?? '';
+        if (activeAppointmentIds.contains(appointmentId)) {
+          validSlots.add(BookedSlotModel.fromFirestore(doc));
+        } else {
+          orphanedDocRefs.add(doc.reference);
+        }
+      }
+
+      // 3. Tự động dọn dẹp các document mồ côi nếu có
+      if (orphanedDocRefs.isNotEmpty) {
+        for (final ref in orphanedDocRefs) {
+          ref.delete().catchError((_) => null);
+        }
+      }
+
+      // 4. Bổ sung các slotIds từ active appointments nếu bookedSlots bị thiếu
+      final existingValidSlotIds = validSlots.map((s) => s.id).toSet();
+      for (final appDoc in activeAppointments) {
+        final data = appDoc.data();
+        final rawSlotIds = data['slotIds'] as List<dynamic>? ?? [];
+        final appDate = data['date'] as String? ?? date;
+        final appTime = data['startTime'] as String? ?? '';
+
+        for (final slotId in rawSlotIds) {
+          final slotIdStr = slotId.toString();
+          if (!existingValidSlotIds.contains(slotIdStr)) {
+            final timePart = slotIdStr.contains('_')
+                ? slotIdStr.split('_').last.replaceAll('-', ':')
+                : appTime;
+            final subSlotTimestamp = DateFormatter.combineDateAndTime(
+              appDate,
+              timePart,
+            );
+            validSlots.add(
+              BookedSlotModel(
+                id: slotIdStr,
+                barberId: barberId,
+                date: appDate,
+                time: timePart,
+                appointmentId: appDoc.id,
+                startTimestamp: subSlotTimestamp,
+              ),
+            );
+            existingValidSlotIds.add(slotIdStr);
+          }
+        }
+      }
+
+      return validSlots;
+    } catch (e) {
+      // Khi gặp lỗi mạng / index, trả về rỗng để không bịa đặt slot giả
+      return [];
+    }
+  }
+
+  void _cleanupOrphanedBookedSlots(
+    String barberId,
+    String date, {
+    required Set<String> activeAppointmentIds,
+  }) async {
+    try {
+      final snapshot = await _firestore
+          .collection('bookedSlots')
+          .where('barberId', isEqualTo: barberId)
+          .where('date', isEqualTo: date)
+          .get();
+
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final appointmentId = data['appointmentId'] as String? ?? '';
+        if (!activeAppointmentIds.contains(appointmentId)) {
+          doc.reference.delete().catchError((_) => null);
+        }
+      }
+    } catch (_) {}
   }
 
   /// Thực thi TRANSACTION đặt lịch nguyên tử (Atomic Transaction):
@@ -197,7 +313,10 @@ class BookingRepository {
         // Lấy thời gian bắt đầu của từng sub-slot 30 phút từ slotId
         // slotId format: "{barberId}_{yyyy-MM-dd}_{HH-mm}"
         final timePart = slotId.split('_').last.replaceAll('-', ':');
-        final subSlotTimestamp = DateFormatter.combineDateAndTime(date, timePart);
+        final subSlotTimestamp = DateFormatter.combineDateAndTime(
+          date,
+          timePart,
+        );
 
         final bookedSlotData = {
           'barberId': barberId,
@@ -227,12 +346,15 @@ class BookingRepository {
     final now = currentTime ?? DateTime.now();
 
     await _firestore.runTransaction((transaction) async {
-      final appointmentRef =
-          _firestore.collection('appointments').doc(appointmentId);
+      final appointmentRef = _firestore
+          .collection('appointments')
+          .doc(appointmentId);
       final appointmentSnapshot = await transaction.get(appointmentRef);
 
       if (!appointmentSnapshot.exists) {
-        throw const CannotCancelException('Lịch hẹn không tồn tại trên hệ thống!');
+        throw const CannotCancelException(
+          'Lịch hẹn không tồn tại trên hệ thống!',
+        );
       }
 
       final data = appointmentSnapshot.data()!;
@@ -274,8 +396,9 @@ class BookingRepository {
       // Xóa toàn bộ bookedSlots liên kết để giải phóng slot
       final rawSlotIds = data['slotIds'] as List<dynamic>? ?? [];
       for (final slotId in rawSlotIds) {
-        final slotDocRef =
-            _firestore.collection('bookedSlots').doc(slotId.toString());
+        final slotDocRef = _firestore
+            .collection('bookedSlots')
+            .doc(slotId.toString());
         transaction.delete(slotDocRef);
       }
     });

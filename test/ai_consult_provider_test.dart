@@ -1,3 +1,10 @@
+// ============================================================================
+// File: test/ai_consult_provider_test.dart
+// Mục đích: Chứa các kịch bản kiểm thử (Test) cho ai_consult_provider.
+// Kết cấu:
+//  - Sử dụng flutter_test, bao gồm các nhóm test (group) và các trường hợp test (test/testWidgets) cụ thể.
+// ============================================================================
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hairfit_ai/models/hairstyle_model.dart';
 import 'package:hairfit_ai/core/services/seed_data_service.dart';
@@ -32,9 +39,7 @@ void main() {
   late AIConsultNotifier notifier;
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({
-      kAiConsentKey: false,
-    });
+    SharedPreferences.setMockInitialValues({kAiConsentKey: false});
     final prefs = await SharedPreferences.getInstance();
 
     consultantService = AIConsultantService(
@@ -82,11 +87,7 @@ void main() {
     });
 
     test('setPreferences updates gender, length, and texture', () {
-      notifier.setPreferences(
-        gender: 'male',
-        length: 'short',
-        texture: 'wavy',
-      );
+      notifier.setPreferences(gender: 'male', length: 'short', texture: 'wavy');
 
       expect(notifier.state.selectedGender, equals('male'));
       expect(notifier.state.selectedLength, equals('short'));
@@ -100,43 +101,52 @@ void main() {
       expect(notifier.state.isAnalyzing, isFalse);
     });
 
-    test('selectManualFaceShape (Fallback) immediately computes recommendations', () async {
-      await notifier.selectManualFaceShape(
-        FaceShape.round,
-        catalogOverride: SeedDataService.sampleHairstyles,
-      );
+    test(
+      'selectManualFaceShape (Fallback) immediately computes recommendations',
+      () async {
+        await notifier.selectManualFaceShape(
+          FaceShape.round,
+          catalogOverride: SeedDataService.sampleHairstyles,
+        );
 
-      expect(notifier.state.hasSuccessResult, isTrue);
-      expect(notifier.state.successResult, isNotNull);
+        expect(notifier.state.hasSuccessResult, isTrue);
+        expect(notifier.state.successResult, isNotNull);
 
-      final success = notifier.state.successResult!;
-      expect(success.faceShape, equals(FaceShape.round));
-      expect(success.recommendation, isNotNull);
-      expect(success.recommendation!.primaryRecommendations, isNotEmpty);
+        final success = notifier.state.successResult!;
+        expect(success.faceShape, equals(FaceShape.round));
+        expect(success.recommendation, isNotNull);
+        expect(success.recommendation!.primaryRecommendations, isNotEmpty);
 
-      // Mặt tròn phải ưu tiên Undercut hoặc Pompadour tạo chiều cao
-      final primaryStyleIds = success.recommendation!.primaryRecommendations
-          .map((r) => r.style.id)
-          .toList();
-      expect(primaryStyleIds, anyOf(contains('undercut'), contains('pompadour')));
+        // Mặt tròn phải ưu tiên Undercut hoặc Pompadour tạo chiều cao
+        final primaryStyleIds = success.recommendation!.primaryRecommendations
+            .map((r) => r.style.id)
+            .toList();
+        expect(
+          primaryStyleIds,
+          anyOf(contains('undercut'), contains('pompadour')),
+        );
 
-      // Mỗi kiểu đề xuất đều có matchScore, reason tiếng Việt và styling tips
-      final topRec = success.recommendation!.primaryRecommendations.first;
-      expect(topRec.matchScore, greaterThan(0.8));
-      expect(topRec.matchReasonVi, isNotEmpty);
-    });
+        // Mỗi kiểu đề xuất đều có matchScore, reason tiếng Việt và styling tips
+        final topRec = success.recommendation!.primaryRecommendations.first;
+        expect(topRec.matchScore, greaterThan(0.8));
+        expect(topRec.matchReasonVi, isNotEmpty);
+      },
+    );
 
-    test('selectManualFaceShape for Square face prioritizes suitable styles', () async {
-      await notifier.selectManualFaceShape(
-        FaceShape.square,
-        catalogOverride: SeedDataService.sampleHairstyles,
-      );
+    test(
+      'selectManualFaceShape for Square face prioritizes suitable styles',
+      () async {
+        await notifier.selectManualFaceShape(
+          FaceShape.square,
+          catalogOverride: SeedDataService.sampleHairstyles,
+        );
 
-      final success = notifier.state.successResult!;
-      expect(success.faceShape, equals(FaceShape.square));
-      expect(success.recommendation!.generalAdviceVi, contains('vuông'));
-      expect(success.recommendation!.avoidAdviceVi, isNotEmpty);
-    });
+        final success = notifier.state.successResult!;
+        expect(success.faceShape, equals(FaceShape.square));
+        expect(success.recommendation!.generalAdviceVi, contains('vuông'));
+        expect(success.recommendation!.avoidAdviceVi, isNotEmpty);
+      },
+    );
 
     test('reset clears image and result while preserving preferences', () {
       notifier.setImage('/mock/test.jpg');

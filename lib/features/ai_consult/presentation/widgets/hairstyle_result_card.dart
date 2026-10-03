@@ -1,5 +1,13 @@
+// ============================================================================
+// File: lib/features/ai_consult/presentation/widgets/hairstyle_result_card.dart
+// Mục đích: Thành phần giao diện (Widget) con thuộc tính năng ai_consult.
+// Kết cấu:
+//  - Widget nhận dữ liệu và hiển thị UI, đóng gói giao diện cho gọn gàng.
+// ============================================================================
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_text_styles.dart';
@@ -9,7 +17,7 @@ import '../../domain/hairstyle_recommendation_engine.dart';
 /// Card hiển thị chi tiết một kiểu tóc được AI gợi ý (Task 5.10, 5.12)
 /// Bao gồm: Tên kiểu, ảnh minh họa, điểm tương thích (Match Score),
 /// lý do nhân trắc học phù hợp, mẹo tạo nếp thực tế và nút CTA tìm thợ
-class HairstyleResultCard extends StatelessWidget {
+class HairstyleResultCard extends StatefulWidget {
   final RecommendedHairstyle recommendation;
   final int rank; // 1, 2, 3...
   final VoidCallback onFindBarbers;
@@ -22,9 +30,30 @@ class HairstyleResultCard extends StatelessWidget {
   });
 
   @override
+  State<HairstyleResultCard> createState() => _HairstyleResultCardState();
+}
+
+class _HairstyleResultCardState extends State<HairstyleResultCard> {
+  int _currentImageIndex = 0;
+  late final PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final style = recommendation.style;
-    final matchPercent = (recommendation.matchScore * 100).toInt();
+    final style = widget.recommendation.style;
+    final matchPercent = (widget.recommendation.matchScore * 100).toInt();
+    final images = style.displayImages;
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppDimensions.lg),
@@ -32,12 +61,16 @@ class HairstyleResultCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: AppDimensions.borderRadiusLg,
         border: Border.all(
-          color: rank == 1 ? AppColors.accent.withValues(alpha: 0.5) : AppColors.divider,
-          width: rank == 1 ? 1.5 : 1.0,
+          color: widget.rank == 1
+              ? AppColors.accent.withValues(alpha: 0.5)
+              : AppColors.divider,
+          width: widget.rank == 1 ? 1.5 : 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: rank == 1 ? 0.08 : 0.04),
+            color: Colors.black.withValues(
+              alpha: widget.rank == 1 ? 0.08 : 0.04,
+            ),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -62,11 +95,13 @@ class HairstyleResultCard extends StatelessWidget {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: rank == 1 ? AppColors.accent : AppColors.secondary,
+                    color: widget.rank == 1
+                        ? AppColors.accent
+                        : AppColors.secondary,
                     borderRadius: AppDimensions.borderRadiusSm,
                   ),
                   child: Text(
-                    '#$rank GỢI Ý',
+                    '#${widget.rank} GỢI Ý',
                     style: AppTextStyles.caption.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -159,10 +194,10 @@ class HairstyleResultCard extends StatelessWidget {
 
           const SizedBox(height: AppDimensions.sm),
 
-          // Khối ảnh kiểu tóc minh họa
-          if (style.imageUrl.isNotEmpty)
+          // Khối ảnh kiểu tóc minh họa (Hỗ trợ Carousel tối đa 5 ảnh)
+          if (images.isNotEmpty)
             Container(
-              height: 180,
+              height: 200,
               width: double.infinity,
               margin: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
               decoration: BoxDecoration(
@@ -170,19 +205,98 @@ class HairstyleResultCard extends StatelessWidget {
                 color: AppColors.background,
               ),
               clipBehavior: Clip.antiAlias,
-              child: CachedNetworkImage(
-                imageUrl: style.imageUrl,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: AppColors.background,
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.accent,
-                    ),
+              child: Stack(
+                children: [
+                  PageView.builder(
+                    controller: _pageController,
+                    itemCount: images.length,
+                    onPageChanged: (idx) {
+                      setState(() {
+                        _currentImageIndex = idx;
+                      });
+                    },
+                    itemBuilder: (context, idx) {
+                      return CachedNetworkImage(
+                        imageUrl: images[idx],
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        placeholder: (context, url) => Container(
+                          color: AppColors.background,
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.accent,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) =>
+                            _buildImageFallback(),
+                      );
+                    },
                   ),
-                ),
-                errorWidget: (context, url, error) => _buildImageFallback(),
+
+                  // Huy hiệu đếm ảnh góc trên bên phải nếu có nhiều hơn 1 ảnh
+                  if (images.length > 1) ...[
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.65),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.photo_library_outlined,
+                              size: 12,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${_currentImageIndex + 1}/${images.length}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Chấm Dots Indicator dưới đáy ảnh
+                    Positioned(
+                      bottom: 8,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(images.length, (i) {
+                          final isActive = i == _currentImageIndex;
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                            width: isActive ? 16 : 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: isActive
+                                  ? AppColors.accent
+                                  : Colors.white.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             )
           else
@@ -231,7 +345,7 @@ class HairstyleResultCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        recommendation.matchReasonVi,
+                        widget.recommendation.matchReasonVi,
                         style: AppTextStyles.bodySmall.copyWith(
                           color: AppColors.textPrimary,
                           height: 1.4,
@@ -245,7 +359,7 @@ class HairstyleResultCard extends StatelessWidget {
           ),
 
           // Mẹo tạo nếp thực tế (Styling Tips) nếu có
-          if (recommendation.stylingTips.isNotEmpty) ...[
+          if (widget.recommendation.stylingTips.isNotEmpty) ...[
             const SizedBox(height: AppDimensions.sm),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
@@ -270,13 +384,16 @@ class HairstyleResultCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  ...recommendation.stylingTips.map((tip) {
+                  ...widget.recommendation.stylingTips.map((tip) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 2),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(' • ', style: TextStyle(color: AppColors.accent)),
+                          const Text(
+                            ' • ',
+                            style: TextStyle(color: AppColors.accent),
+                          ),
                           Expanded(
                             child: Text(
                               tip,
@@ -307,8 +424,12 @@ class HairstyleResultCard extends StatelessWidget {
             ),
             child: AppButton(
               text: 'Tìm thợ cắt kiểu ${style.name}',
-              icon: const Icon(Icons.map_outlined, color: Colors.white, size: 18),
-              onPressed: onFindBarbers,
+              icon: const Icon(
+                Icons.map_outlined,
+                color: Colors.white,
+                size: 18,
+              ),
+              onPressed: widget.onFindBarbers,
             ),
           ),
         ],
@@ -328,7 +449,7 @@ class HairstyleResultCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            recommendation.style.name,
+            widget.recommendation.style.name,
             style: AppTextStyles.caption.copyWith(
               color: AppColors.textSecondary,
             ),

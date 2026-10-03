@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/features/ai_consult/domain/ai_consultant_service.dart
+// Mục đích: Định nghĩa logic nghiệp vụ cốt lõi (Domain/Entity) cho tính năng ai_consult.
+// Kết cấu:
+//  - Các lớp xử lý logic độc lập, không phụ thuộc vào UI hay Framework (VD: AI Analyzer).
+// ============================================================================
+
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+
 import '../../../models/hairstyle_model.dart';
 import '../data/face_validation_service.dart';
 import 'ai_consult_result.dart';
@@ -16,9 +24,10 @@ class AIConsultantService {
     FaceValidationService? faceValidator,
     FaceShapeAnalyzer? faceShapeAnalyzer,
     HairstyleRecommendationEngine? recommendationEngine,
-  })  : _faceValidator = faceValidator ?? FaceValidationService(),
-        _faceShapeAnalyzer = faceShapeAnalyzer ?? const FaceShapeAnalyzer(),
-        _recommendationEngine = recommendationEngine ?? const HairstyleRecommendationEngine();
+  }) : _faceValidator = faceValidator ?? FaceValidationService(),
+       _faceShapeAnalyzer = faceShapeAnalyzer ?? const FaceShapeAnalyzer(),
+       _recommendationEngine =
+           recommendationEngine ?? const HairstyleRecommendationEngine();
 
   /// Thực hiện quy trình AI Tư Vấn hoàn chỉnh on-device:
   /// 1. Tầng 1: Validate chất lượng ảnh bằng Google ML Kit on-device (Euler X/Y, bounding box)
@@ -56,11 +65,10 @@ class AIConsultantService {
     );
 
     // Chuyển đổi sang danh sách HairstyleSuggestion chuẩn
-    final suggestions = recommendation.primaryRecommendations.take(3).map((rec) {
-      return HairstyleSuggestion(
-        id: rec.style.id,
-        reason: rec.matchReasonVi,
-      );
+    final suggestions = recommendation.primaryRecommendations.take(3).map((
+      rec,
+    ) {
+      return HairstyleSuggestion(id: rec.style.id, reason: rec.matchReasonVi);
     }).toList();
 
     return AIConsultResult.success(

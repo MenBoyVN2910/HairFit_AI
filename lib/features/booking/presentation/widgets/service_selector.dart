@@ -1,4 +1,12 @@
+// ============================================================================
+// File: lib/features/booking/presentation/widgets/service_selector.dart
+// Mục đích: Thành phần giao diện (Widget) con thuộc tính năng booking.
+// Kết cấu:
+//  - Widget nhận dữ liệu và hiển thị UI, đóng gói giao diện cho gọn gàng.
+// ============================================================================
+
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_text_styles.dart';
@@ -55,7 +63,8 @@ class ServiceSelector extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: services.length,
-          separatorBuilder: (context, index) => const SizedBox(height: AppDimensions.sm),
+          separatorBuilder: (context, index) =>
+              const SizedBox(height: AppDimensions.sm),
           itemBuilder: (context, index) {
             final service = services[index];
             final isSelected = selectedService?.id == service.id;
@@ -84,13 +93,21 @@ class ServiceSelector extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isSelected ? AppColors.accent : AppColors.textSecondary,
+                          color: isSelected
+                              ? AppColors.accent
+                              : AppColors.textSecondary,
                           width: 2,
                         ),
-                        color: isSelected ? AppColors.accent : Colors.transparent,
+                        color: isSelected
+                            ? AppColors.accent
+                            : Colors.transparent,
                       ),
                       child: isSelected
-                          ? const Icon(Icons.check, size: 16, color: Colors.white)
+                          ? const Icon(
+                              Icons.check,
+                              size: 16,
+                              color: Colors.white,
+                            )
                           : null,
                     ),
                     const SizedBox(width: AppDimensions.md),
@@ -101,7 +118,9 @@ class ServiceSelector extends StatelessWidget {
                           Text(
                             service.name,
                             style: AppTextStyles.h4.copyWith(
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -125,7 +144,9 @@ class ServiceSelector extends StatelessWidget {
                     Text(
                       DateFormatter.formatCurrency(service.price),
                       style: AppTextStyles.h4.copyWith(
-                        color: isSelected ? AppColors.accent : AppColors.primary,
+                        color: isSelected
+                            ? AppColors.accent
+                            : AppColors.primary,
                       ),
                     ),
                   ],

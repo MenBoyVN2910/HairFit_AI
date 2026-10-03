@@ -1,3 +1,10 @@
+// ============================================================================
+// File: lib/features/ai_consult/domain/hairstyle_recommendation_engine.dart
+// Mục đích: Định nghĩa logic nghiệp vụ cốt lõi (Domain/Entity) cho tính năng ai_consult.
+// Kết cấu:
+//  - Các lớp xử lý logic độc lập, không phụ thuộc vào UI hay Framework (VD: AI Analyzer).
+// ============================================================================
+
 import '../../../models/hairstyle_model.dart';
 import 'face_shape.dart';
 
@@ -62,11 +69,17 @@ class HairstyleRecommendationEngine {
   static final Map<FaceShape, FaceShapeStylingRule> rulesMatrix = {
     FaceShape.square: const FaceShapeStylingRule(
       faceShape: FaceShape.square,
-      generalAdviceVi:
-          'Khuôn mặt vuông có xương quai hàm mạnh mẽ và nam tính. Hãy ưu tiên các kiểu tóc có mái xéo, mái rẽ ngôi bất đối xứng, hoặc sấy phồng đỉnh đầu để làm mềm các đường nét góc cạnh và kéo dài khuôn mặt.',
-      avoidAdviceVi:
-          'Tránh các kiểu tóc cắt mái bằng quá dày, tóc ép thẳng đuỗn hoặc húi cua quá vuông vức vì sẽ làm khuôn mặt trông bị bè ngang.',
-      preferredKeywords: ['mái xéo', 'side part', 'layer', 'quiff', 'pompadour', 'fade', 'undercut'],
+      generalAdviceVi: 'Khuôn mặt vuông có xương quai hàm mạnh mẽ và nam tính. Hãy ưu tiên các kiểu tóc có mái xéo, mái rẽ ngôi bất đối xứng, hoặc sấy phồng đỉnh đầu để làm mềm các đường nét góc cạnh và kéo dài khuôn mặt.',
+      avoidAdviceVi: 'Tránh các kiểu tóc cắt mái bằng quá dày, tóc ép thẳng đuỗn hoặc húi cua quá vuông vức vì sẽ làm khuôn mặt trông bị bè ngang.',
+      preferredKeywords: [
+        'mái xéo',
+        'side part',
+        'layer',
+        'quiff',
+        'pompadour',
+        'fade',
+        'undercut',
+      ],
       avoidKeywords: ['mái bằng dày', 'đầu vuông'],
       specificStyleReasons: {
         'undercut': 'Cắt gọn hai bên và vuốt mái ngược tạo độ cao đỉnh đầu, làm thon gọn khung xương vuông vức.',
@@ -80,11 +93,15 @@ class HairstyleRecommendationEngine {
     ),
     FaceShape.round: const FaceShapeStylingRule(
       faceShape: FaceShape.round,
-      generalAdviceVi:
-          'Khuôn mặt tròn có chiều dài và rộng tương đương, cằm tròn đầy đặn. Bí quyết là tạo thêm chiều cao ở đỉnh đầu (pompadour, quiff, vuốt dựng) và cắt sát gọn gàng hai bên (fade, undercut) để kéo thon khuôn mặt.',
-      avoidAdviceVi:
-          'Tránh tóc mái bằng ngang trán, tóc xòe phồng hai bên má hoặc tóc quá dài uốn xoăn xù tròn vì sẽ làm mặt trông tròn trĩnh hơn.',
-      preferredKeywords: ['pompadour', 'quiff', 'undercut', 'side part vuốt cao', 'vuốt dựng'],
+      generalAdviceVi: 'Khuôn mặt tròn có chiều dài và rộng tương đương, cằm tròn đầy đặn. Bí quyết là tạo thêm chiều cao ở đỉnh đầu (pompadour, quiff, vuốt dựng) và cắt sát gọn gàng hai bên (fade, undercut) để kéo thon khuôn mặt.',
+      avoidAdviceVi: 'Tránh tóc mái bằng ngang trán, tóc xòe phồng hai bên má hoặc tóc quá dài uốn xoăn xù tròn vì sẽ làm mặt trông tròn trĩnh hơn.',
+      preferredKeywords: [
+        'pompadour',
+        'quiff',
+        'undercut',
+        'side part vuốt cao',
+        'vuốt dựng',
+      ],
       avoidKeywords: ['mái ngố', 'phồng hai bên', 'xoăn xù'],
       specificStyleReasons: {
         'pompadour': 'Phần tóc mái sấy phồng cao tạo ảo giác kéo dài chiều cao gương mặt cực kỳ hiệu quả.',
@@ -95,11 +112,17 @@ class HairstyleRecommendationEngine {
     ),
     FaceShape.oval: const FaceShapeStylingRule(
       faceShape: FaceShape.oval,
-      generalAdviceVi:
-          'Khuôn mặt trái xoan là dáng mặt lý tưởng nhất với các tỷ lệ vàng cân đối hoàn hảo. Bạn có thể tự tin trải nghiệm hầu hết mọi kiểu tóc từ cổ điển đến phá cách.',
-      avoidAdviceVi:
-          'Chỉ cần lưu ý không để tóc mái quá dài che lấp toàn bộ khuôn mặt hoặc phủ kín vầng trán đẹp tự nhiên.',
-      preferredKeywords: ['undercut', 'side part', 'layer', 'pompadour', 'slicked back', 'mullet', 'quiff'],
+      generalAdviceVi: 'Khuôn mặt trái xoan là dáng mặt lý tưởng nhất với các tỷ lệ vàng cân đối hoàn hảo. Bạn có thể tự tin trải nghiệm hầu hết mọi kiểu tóc từ cổ điển đến phá cách.',
+      avoidAdviceVi: 'Chỉ cần lưu ý không để tóc mái quá dài che lấp toàn bộ khuôn mặt hoặc phủ kín vầng trán đẹp tự nhiên.',
+      preferredKeywords: [
+        'undercut',
+        'side part',
+        'layer',
+        'pompadour',
+        'slicked back',
+        'mullet',
+        'quiff',
+      ],
       avoidKeywords: ['mái che kín mặt'],
       specificStyleReasons: {
         'undercut': 'Tôn vinh đường nét cân đối, tạo phong cách hiện đại và chuẩn mực quý ông.',
@@ -110,17 +133,23 @@ class HairstyleRecommendationEngine {
         'slicked_back': 'Tôn vinh toàn bộ gương mặt sáng rạng rỡ và quyền lực.',
         'mullet_modern': 'Thể hiện cá tính tự do và chất nghệ thuật mà vẫn giữ được sự hài hòa.',
         'quiff': 'Năng động, cuốn hút và tràn đầy năng lượng cho các buổi hẹn hò hay công việc.',
-        'french_crop': 'Gọn gàng, tối giản nhưng vô cùng thời thượng và cá tính.',
-        'buzz_cut': 'Tôn trọn từng đường nét thanh tú và vầng trán cân đối hoàn mỹ.',
+        'french_crop':
+            'Gọn gàng, tối giản nhưng vô cùng thời thượng và cá tính.',
+        'buzz_cut':
+            'Tôn trọn từng đường nét thanh tú và vầng trán cân đối hoàn mỹ.',
       },
     ),
     FaceShape.heart: const FaceShapeStylingRule(
       faceShape: FaceShape.heart,
-      generalAdviceVi:
-          'Mặt trái tim có vầng trán rộng và cằm thon nhọn. Lựa chọn tối ưu là các kiểu tóc có mái rủ nhẹ nhàng (layer, side part rủ, two block) hoặc có độ dài vừa phải để che bớt trán và tạo độ cân bằng cho cằm.',
-      avoidAdviceVi:
-          'Tránh các kiểu vuốt phồng đỉnh đầu quá cao hoặc cắt quá sát phần chân tóc hai bên thái dương vì sẽ làm trán trông càng rộng hơn.',
-      preferredKeywords: ['layer', 'side part rủ', 'two block', 'tóc dài vừa', 'mái thưa'],
+      generalAdviceVi: 'Mặt trái tim có vầng trán rộng và cằm thon nhọn. Lựa chọn tối ưu là các kiểu tóc có mái rủ nhẹ nhàng (layer, side part rủ, two block) hoặc có độ dài vừa phải để che bớt trán và tạo độ cân bằng cho cằm.',
+      avoidAdviceVi: 'Tránh các kiểu vuốt phồng đỉnh đầu quá cao hoặc cắt quá sát phần chân tóc hai bên thái dương vì sẽ làm trán trông càng rộng hơn.',
+      preferredKeywords: [
+        'layer',
+        'side part rủ',
+        'two block',
+        'tóc dài vừa',
+        'mái thưa',
+      ],
       avoidKeywords: ['phồng cao', 'cạo sát thái dương'],
       specificStyleReasons: {
         'layer_male': 'Các lớp tóc tỉa so le phủ nhẹ hai bên thái dương giúp thu hẹp bề ngang của vầng trán rộng.',
@@ -131,11 +160,15 @@ class HairstyleRecommendationEngine {
     ),
     FaceShape.oblong: const FaceShapeStylingRule(
       faceShape: FaceShape.oblong,
-      generalAdviceVi:
-          'Khuôn mặt dài có khoảng cách từ trán đến cằm lớn. Giải pháp tốt nhất là các kiểu tóc có mái ngang, mái rủ, hoặc tạo độ bồng bềnh hai bên (French crop, Layer, Side part rủ) để rút ngắn chiều dài thị giác của mặt.',
-      avoidAdviceVi:
-          'Tuyệt đối tránh vuốt tóc dựng đứng lên trên (như Pompadour cao, Spiky) hoặc cạo sát trắng hai bên (High Fade) vì sẽ làm mặt càng dài hơn.',
-      preferredKeywords: ['french crop', 'mái ngang', 'layer', 'side part rủ', 'xoăn nhẹ'],
+      generalAdviceVi: 'Khuôn mặt dài có khoảng cách từ trán đến cằm lớn. Giải pháp tốt nhất là các kiểu tóc có mái ngang, mái rủ, hoặc tạo độ bồng bềnh hai bên (French crop, Layer, Side part rủ) để rút ngắn chiều dài thị giác của mặt.',
+      avoidAdviceVi: 'Tuyệt đối tránh vuốt tóc dựng đứng lên trên (như Pompadour cao, Spiky) hoặc cạo sát trắng hai bên (High Fade) vì sẽ làm mặt càng dài hơn.',
+      preferredKeywords: [
+        'french crop',
+        'mái ngang',
+        'layer',
+        'side part rủ',
+        'xoăn nhẹ',
+      ],
       avoidKeywords: ['vuốt dựng đứng', 'pompadour cao', 'high fade sát'],
       specificStyleReasons: {
         'french_crop': 'Mái cắt ngang che bớt 1/3 vầng trán, lập tức làm khuôn mặt trông ngắn lại và cân đối hơn.',
@@ -169,7 +202,9 @@ class HairstyleRecommendationEngine {
       double score = isDirectMatch ? 0.85 : 0.40;
 
       // Tính điểm thưởng dựa trên từ khóa ưu tiên trong tags/name/description
-      final combinedText = '${style.name} ${style.description} ${style.tags.join(" ")}'.toLowerCase();
+      final combinedText =
+          '${style.name} ${style.description} ${style.tags.join(" ")}'
+              .toLowerCase();
 
       for (final kw in rule.preferredKeywords) {
         if (combinedText.contains(kw.toLowerCase())) {
@@ -187,7 +222,8 @@ class HairstyleRecommendationEngine {
       score = score.clamp(0.1, 0.99);
 
       // Tìm lý do cụ thể theo từng styleId hoặc sinh lý do chuyên gia
-      String reason = rule.specificStyleReasons[style.id] ??
+      String reason =
+          rule.specificStyleReasons[style.id] ??
           'Kiểu tóc ${style.name} hài hòa với dáng ${faceShape.displayNameVi}, giúp tôn lên đường nét khuôn mặt của bạn.';
 
       final tips = _generateStylingTips(style, faceShape);
@@ -222,13 +258,17 @@ class HairstyleRecommendationEngine {
   List<String> _generateStylingTips(HairstyleModel style, FaceShape faceShape) {
     final tips = <String>[];
     if (style.id == 'undercut' || style.id == 'pompadour') {
-      tips.add('Sử dụng sáp pomade gốc nước để giữ nếp sấy phồng suốt cả ngày.');
+      tips.add(
+        'Sử dụng sáp pomade gốc nước để giữ nếp sấy phồng suốt cả ngày.',
+      );
       tips.add('Sấy ngược chân tóc kết hợp lược tròn trước khi bôi sáp.');
     } else if (style.id == 'side_part') {
       tips.add('Xác định đường rẽ ngôi thẳng từ đuôi lông mày lên đỉnh đầu.');
       tips.add('Dùng lược răng thưa chải đều để nếp rẽ ngôi tự nhiên nhất.');
     } else if (style.id == 'layer_male' || style.id == 'two_block') {
-      tips.add('Dùng sáp vuốt dạng matte clay không bóng để giữ độ bay tự nhiên.');
+      tips.add(
+        'Dùng sáp vuốt dạng matte clay không bóng để giữ độ bay tự nhiên.',
+      );
       tips.add('Sấy khô tự nhiên bằng tay, không cần chải ép sát vào trán.');
     } else if (style.id == 'french_crop' || style.id == 'buzz_cut') {
       tips.add('Gội đầu và lau khô nhanh chóng, không tốn thời gian tạo kiểu.');
